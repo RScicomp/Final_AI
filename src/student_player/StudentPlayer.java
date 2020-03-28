@@ -1,9 +1,22 @@
+
 package student_player;
 
+import Saboteur.SaboteurMove;
 import boardgame.Move;
+import Saboteur.cardClasses.SaboteurCard;
+import java.util.HashMap;
+import java.util.Map;
+//import student_player.MyTools.Path;
 
 import Saboteur.SaboteurPlayer;
 import Saboteur.SaboteurBoardState;
+import Saboteur.cardClasses.SaboteurTile;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 
 /** A player file submitted by a student. */
 public class StudentPlayer extends SaboteurPlayer {
@@ -13,8 +26,40 @@ public class StudentPlayer extends SaboteurPlayer {
      * important, because this is what the code that runs the competition uses to
      * associate you with your agent. The constructor should do nothing else.
      */
+    private ArrayList<SaboteurCard> Deck;
+    private Map<String,Integer> compo;
+    private ArrayList<SaboteurCard> hand;
+    private SaboteurTile[][] board;
+
     public StudentPlayer() {
-        super("xxxxxxxxx");
+        super("260729805");
+        this.Deck = SaboteurCard.getDeck();
+        this.compo = SaboteurCard.getDeckcomposition();
+    }
+    public void printDeck(){
+        for (int i =0 ; i < this.Deck.size();i++){
+            System.out.println(this.Deck.get(i).getName());
+        }
+    }
+    public void printBoard(){
+        for (int i =0 ;i < board.length;i++){
+            for (int j =0;j<board[i].length;j++) {
+                if(board[i][j]!=null) {
+                    System.out.print(board[i][j].getIdx());
+                }else{
+                    System.out.print("-");
+                }
+            }
+            System.out.println("");
+        }
+    }
+    public Map<String,Integer> cloneCompo(){
+        Map<String,Integer> new_map = new HashMap<String,Integer>();
+
+        // using putAll method
+        new_map.putAll(this.compo);
+        return(new_map);
+
     }
 
     /**
@@ -27,9 +72,22 @@ public class StudentPlayer extends SaboteurPlayer {
         // For example, maybe you'll need to load some pre-processed best opening
         // strategies...
         MyTools.getSomething();
+        SaboteurTile[][] boardtiles = boardState.getHiddenBoard();
+        int[][] board = MyTools.cloneArray(boardState.getHiddenIntBoard());
+        this.hand = boardState.getCurrentPlayerCards();
+        this.board = boardtiles;
 
+        //Update deck.
+        this.compo= SaboteurCard.getDeckcomposition();
+        compo.put("8",compo.get("8")+3);
+        this.compo = MyTools.updateDeck(cloneCompo(),boardtiles);
+
+        printBoard();
+        MyTools.minimax(0,0,boardState);
         // Is random the best you can do?
         Move myMove = boardState.getRandomMove();
+
+        printDeck();
 
         // Return your move to be processed by the server.
         return myMove;
