@@ -115,6 +115,16 @@ public class MyTools {
 
     }
 
+    public double euclideanDistance(int[] source, int[] destination){
+        return Math.sqrt((source[1] - destination[1]) * (source[1] - destination[1]) + (source[0] - destination[0]) * (source[0] - destination[0]));
+    }
+    public double mean(double[] values){
+        double sum = 0;
+        for (int i = 0; i < values.length; i++) {
+            sum += values[i];
+        }
+        return sum / values.length;
+    }
 
     public static SaboteurMove minimax(int currentdepth, int maxdepth, SaboteurBoardState boardState){
 
