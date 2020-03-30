@@ -2,6 +2,7 @@
 package student_player;
 
 import Saboteur.SaboteurMove;
+import Saboteur.SaboteurBoardState;
 import boardgame.Move;
 import Saboteur.cardClasses.SaboteurCard;
 import java.util.HashMap;
@@ -30,11 +31,12 @@ public class StudentPlayer extends SaboteurPlayer {
     private Map<String,Integer> compo;
     private ArrayList<SaboteurCard> hand;
     private SaboteurTile[][] board;
-
+    private SaboteurBoardState cboardState;
     public StudentPlayer() {
         super("260729805");
         this.Deck = SaboteurCard.getDeck();
         this.compo = SaboteurCard.getDeckcomposition();
+        //this.cboardState = new SaboteurBoardState();
     }
     public void printDeck(){
         for (int i =0 ; i < this.Deck.size();i++){
@@ -79,11 +81,12 @@ public class StudentPlayer extends SaboteurPlayer {
 
         //Update deck.
         this.compo= SaboteurCard.getDeckcomposition();
-        compo.put("8",compo.get("8")+3);
+        //compo.put("8",compo.get("8")+3);
         this.compo = MyTools.updateDeck(cloneCompo(),boardtiles);
 
         printBoard();
-        MyTools.minimax(0,0,boardState);
+        //Check all possibilities
+         MyTools.minimax(0,0,boardState,this.compo,this.hand);
         // Is random the best you can do?
         Move myMove = boardState.getRandomMove();
 

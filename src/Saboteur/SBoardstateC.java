@@ -1,8 +1,5 @@
-package Saboteur.tiles;
+package Saboteur;
 
-import Saboteur.SaboteurBoardPanel;
-import Saboteur.SaboteurBoardState;
-import Saboteur.SaboteurMove;
 import Saboteur.cardClasses.*;
 import boardgame.Board;
 import boardgame.BoardState;
@@ -15,7 +12,7 @@ import java.util.function.UnaryOperator;
 /**
  * @author Pierre, adapted from mgrenander work on pentagoswap.
  */
-public class SBoardCopy extends BoardState {
+public class SBoardstateC extends BoardState {
     public static final int BOARD_SIZE = 14;
     public static final int originPos = 5;
 
@@ -25,29 +22,29 @@ public class SBoardCopy extends BoardState {
 
     private static int FIRST_PLAYER = 1;
 
-    private SaboteurTile[][] board;
-    private int[][] intBoard;
+    public SaboteurTile[][] board;
+    public int[][] intBoard;
     //player variables:
     // Note: Player 1 is active when turnplayer is 1;
-    private ArrayList<SaboteurCard> player1Cards; //hand of player 1
-    private ArrayList<SaboteurCard> player2Cards; //hand of player 2
-    private int player1nbMalus;
-    private int player2nbMalus;
-    private boolean[] player1hiddenRevealed = {false,false,false};
-    private boolean[] player2hiddenRevealed = {false,false,false};
+    public ArrayList<SaboteurCard> player1Cards; //hand of player 1
+    public ArrayList<SaboteurCard> player2Cards; //hand of player 2
+    public int player1nbMalus;
+    public int player2nbMalus;
+    public boolean[] player1hiddenRevealed = {false,false,false};
+    public boolean[] player2hiddenRevealed = {false,false,false};
 
-    private ArrayList<SaboteurCard> Deck; //deck form which player pick
+    public ArrayList<SaboteurCard> Deck; //deck form which player pick
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
-    protected SaboteurTile[] hiddenCards = new SaboteurTile[3];
-    private boolean[] hiddenRevealed = {false,false,false}; //whether hidden at pos1 is revealed, hidden at pos2 is revealed, hidden at pos3 is revealed.
+    public SaboteurTile[] hiddenCards = new SaboteurTile[3];
+    public boolean[] hiddenRevealed = {false,false,false}; //whether hidden at pos1 is revealed, hidden at pos2 is revealed, hidden at pos3 is revealed.
 
 
-    private int turnPlayer;
-    private int turnNumber;
-    private int winner;
-    private Random rand;
+    public int turnPlayer;
+    public int turnNumber;
+    public int winner;
+    public Random rand;
 
-    SaboteurBoardState() {
+    SBoardstateC() {
         super();
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -98,13 +95,27 @@ public class SBoardCopy extends BoardState {
     // You are not allowed to use this method for your agent.
     // Using it will result in potential errors, because it does not returns a correct copy.
     // Here for server purposes.
-    private SaboteurBoardState(SaboteurBoardState pbs) {
-        super();
-        this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            System.arraycopy(pbs.board[i], 0, this.board[i], 0, BOARD_SIZE);
+    public SaboteurTile[][] copyTiles(SaboteurBoardState boardState){
+
+        SaboteurTile[][] hiddenBoard = boardState.getHiddenBoard();
+        SaboteurTile[][] copy = new SaboteurTile[hiddenBoard.length][hiddenBoard.length];
+
+        for (int i = 0; i < hiddenBoard.length;i++){
+            for(int j = 0; j < hiddenBoard[i].length;j++){
+                if(hiddenBoard[i][j] == null){
+                    copy[i][j]= null;
+                }else {
+                    copy[i][j] = new SaboteurTile(hiddenBoard[i][j].getIdx());
+                }
+            }
         }
-        this.rand = pbs.rand;
+        return(copy);
+    }
+    public SBoardstateC(SBoardstateC pbs) {
+        super();
+        this.board = pbs.board;
+
+        this.rand = new Random();
 
         //we are not looking for shallow copy (where element are not copied) but deep copy, so that the user can't destroy the board that is sent to him...
         this.player1Cards = new ArrayList<SaboteurCard>();
@@ -342,7 +353,7 @@ public class SBoardCopy extends BoardState {
     @Override
     public Object clone() {
         // You are not allowed to use this method for your agent.
-        return new SaboteurBoardState(this);
+        return new SBoardstateC(this);
     }
     @Override
     public int getWinner() { return winner; }
@@ -925,44 +936,4 @@ public class SBoardCopy extends BoardState {
         return boardString.toString();
     }
 
-    public static void main(String[] args) {
-        SaboteurBoardState pbs = new SaboteurBoardState();
-        SaboteurBoardPanel sbPannel = new SaboteurBoardPanel();
-        Scanner scanner = new Scanner(System.in);
-        int id = FIRST_PLAYER;
-        while(pbs.winner == Board.NOBODY) {
-            //pbs.printBoard();
-            //System.out.println("Enter move (cardIndex x y): ");
-            //String moveStr = scanner.nextLine();
-            //SaboteurMove m = new SaboteurMove(moveStr + " " + id);
-            SaboteurMove m = pbs.getRandomMove();
-            System.out.println("Chosed move: " + m.toPrettyString());
-            if (!pbs.isLegal(m)) {
-                System.out.println("Invalid move: " + m.toPrettyString());
-                continue;
-            }
-            pbs.processMove(m);
-
-
-            id = 1 - id;
-        }
-
-        switch(pbs.winner) {
-            case 1:
-                System.out.println("First player wins.");
-                break;
-            case 0:
-                System.out.println("Second player wins.");
-                break;
-            case Board.DRAW:
-                System.out.println("Draw.");
-                break;
-            case Board.NOBODY:
-                System.out.println("Nobody has won.");
-                break;
-            default:
-                System.out.println("Unknown error.");
-        }
-        //pbs.printBoard();
-    }
 }
