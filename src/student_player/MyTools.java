@@ -353,12 +353,12 @@ public class MyTools {
         if(nuggetpos != -1){
             int[] goalpos = hiddenPosint[nuggetpos];
 
-            //This is a winning move.
+            //Check if this is a winning move.
             if(pathToMe(intboard,origin,goalpos)){
                 return 100;
             }else{
                 double maxscore = 1000;
-                for (int i = 14; i < (intboard.length-2);i++) {
+                for (int i = 12; i < (intboard.length-2);i++) {
                     for (int j = 0; j < (intboard[i].length - 2); j++) {
                         //System.out.println("COORDS:" + i +", " + j);
                         int[] destination = new int[]{i, j};
@@ -383,8 +383,11 @@ public class MyTools {
                 for(int j = 0; j < (intboard[i].length-2);j++){
                     //System.out.println("COORDS:" + i +", " + j);
                     int[] destination = new int[]{i,j};
+                    //If a walkable path
                     if(intboard[i][j]==1) {
+                        //If there is a path to origin from destination
                         if (pathToMeplaced(intboard, originint, destination)) {
+
                             //print2d2(intboard);
                             double[] distances = new double[]{0, 0, 0};
                             destination[0] = destination[0]/3;
@@ -403,6 +406,7 @@ public class MyTools {
                 System.out.println("State of the Board Score:  " +  (10/maxscore));
             }
             return((int)(10/maxscore));
+            //Drop, Map play first, Destroy -> Destroy.
 
         }
 
@@ -463,9 +467,9 @@ public class MyTools {
                 //make the move
                 newboard.processMove(played);
                 printBoard(newboard.board);
-                //Update the composition of the Deck
-                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
 
+                //Update the composition of the Deck.
+                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
 
 
 

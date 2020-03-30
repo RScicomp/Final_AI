@@ -141,7 +141,6 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.Deck.size();i++){
             this.Deck.add(i,SaboteurCard.copyACard(pbs.Deck.get(i).getName()));
         }
-
         System.arraycopy(pbs.player1hiddenRevealed,0,this.player1hiddenRevealed,0,pbs.player1hiddenRevealed.length);
         System.arraycopy(pbs.player2hiddenRevealed,0,this.player2hiddenRevealed,0,pbs.player2hiddenRevealed.length);
         System.arraycopy(pbs.hiddenRevealed,0,this.hiddenRevealed,0,pbs.hiddenRevealed.length);
@@ -151,7 +150,6 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.hiddenCards.length;i++){
             this.hiddenCards[i] = new SaboteurTile(pbs.hiddenCards[i].getName().split(":")[1]); //Note: we might encounter a problem here, and should define card as cloneable
         }
-
         this.player1nbMalus = pbs.player1nbMalus;
         this.player2nbMalus = pbs.player2nbMalus;
         this.winner = pbs.winner;

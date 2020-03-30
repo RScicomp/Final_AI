@@ -101,6 +101,7 @@ public class StudentPlayer extends SaboteurPlayer {
 
 
 
+
         //printBoard();
         SaboteurMove myMove = MyTools.findBestMove(1,clone,compo,hand);
         //Check all possibilities
