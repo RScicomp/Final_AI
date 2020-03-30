@@ -1,15 +1,13 @@
 
 package student_player;
 
-import Saboteur.SaboteurMove;
-import Saboteur.SaboteurBoardState;
+import Saboteur.*;
 import boardgame.Move;
 import Saboteur.cardClasses.SaboteurCard;
 import java.util.HashMap;
 import java.util.Map;
 //import student_player.MyTools.Path;
 
-import Saboteur.SaboteurPlayer;
 import Saboteur.SaboteurBoardState;
 import Saboteur.cardClasses.SaboteurTile;
 
@@ -73,7 +71,7 @@ public class StudentPlayer extends SaboteurPlayer {
         // You probably will make separate functions in MyTools.
         // For example, maybe you'll need to load some pre-processed best opening
         // strategies...
-        MyTools.getSomething();
+        // MyTools.getSomething();
         SaboteurTile[][] boardtiles = boardState.getHiddenBoard();
         int[][] board = MyTools.cloneArray(boardState.getHiddenIntBoard());
         this.hand = boardState.getCurrentPlayerCards();
@@ -81,12 +79,20 @@ public class StudentPlayer extends SaboteurPlayer {
 
         //Update deck.
         this.compo= SaboteurCard.getDeckcomposition();
-        //compo.put("8",compo.get("8")+3);
-        this.compo = MyTools.updateDeck(cloneCompo(),boardtiles);
+        this.compo = MyTools.updateDeck(compo,boardtiles);
+
+        //Init clone
+        SBoardstateC clone = new SBoardstateC();
+        clone.turnPlayer= boardState.getTurnPlayer();
+        clone.player1Cards=MyTools.cloneHand(this.hand);
+        clone.board = MyTools.copyTiles(boardState);
+
+
 
         printBoard();
+        MyTools.findBestMove(4,clone,compo,hand);
         //Check all possibilities
-         MyTools.minimax(0,0,boardState,this.compo,this.hand);
+        // MyTools.minimax(0,0,clone,this.compo,this.hand);
         // Is random the best you can do?
         Move myMove = boardState.getRandomMove();
 

@@ -1,0 +1,12 @@
+# Server version 0.08 running on localhost:8123
+# Game ID: 31
+# Board class: Saboteur.SaboteurBoard
+# Timeout: 20000
+# First Move Timeout: 30000
+# Date: Sun Mar 29 21:07:57 EDT 2020
+# Player 1: Player-0, '260729805', running on localhost
+# Player 2: Player-1, 'RandomPlayer', running on localhost
+START Player-0 260729805
+START Player-1 RandomPlayer
+BoardInit:Tile:8,Tile:0,Tile:6,Destroy,Bonus,Tile:8,Tile:0,Destroy,Tile:8,Bonus,Tile:9,Tile:0,Tile:4,Map,Map,Tile:3,Tile:14,Map,Tile:12,Bonus,Tile:7,Tile:5,Tile:8,Tile:6,Tile:10,Tile:11,Tile:9,Tile:15,Tile:6,Tile:7,Malus,Map,Tile:8,Map,Tile:9,Tile:7,Malus,Tile:5,Tile:5,Destroy,Map-Tile:9,Bonus,Tile:7,Tile:9,Tile:10,Tile:2,Tile:0-Tile:5,Tile:6,Tile:7,Tile:1,Tile:10,Tile:13,Tile:6-Tile:hidden1,Tile:hidden2,Tile:nugget
+Tile:2 6 5 1

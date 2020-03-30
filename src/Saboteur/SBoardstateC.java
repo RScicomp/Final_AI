@@ -20,7 +20,7 @@ public class SBoardstateC extends BoardState {
     public static final int TUNNEL = 1;
     public static final int WALL = 0;
 
-    private static int FIRST_PLAYER = 1;
+    public static int FIRST_PLAYER = 1;
 
     public SaboteurTile[][] board;
     public int[][] intBoard;
@@ -44,7 +44,7 @@ public class SBoardstateC extends BoardState {
     public int winner;
     public Random rand;
 
-    SBoardstateC() {
+    public SBoardstateC() {
         super();
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -543,7 +543,62 @@ public class SBoardstateC extends BoardState {
         }
         return legalMoves;
     }
+    public ArrayList<SaboteurMove> getAllLegalMoves(boolean minimizer) {
+        // Given the current player hand, gives back all legal moves he can play.
+        ArrayList<SaboteurCard> hand;
+        boolean isBlocked;
 
+        hand = this.player2Cards;
+        isBlocked= player2nbMalus > 0;
+
+        ArrayList<SaboteurMove> legalMoves = new ArrayList<>();
+
+        for(SaboteurCard card : hand){
+            if( card instanceof SaboteurTile && !isBlocked) {
+                ArrayList<int[]> allowedPositions = possiblePositions((SaboteurTile)card);
+                for(int[] pos:allowedPositions){
+                    legalMoves.add(new SaboteurMove(card,pos[0],pos[1],turnPlayer));
+                }
+                //if the card can be flipped, we also had legal moves where the card is flipped;
+                if(SaboteurTile.canBeFlipped(((SaboteurTile)card).getIdx())){
+                    SaboteurTile flippedCard = ((SaboteurTile)card).getFlipped();
+                    ArrayList<int[]> allowedPositionsflipped = possiblePositions(flippedCard);
+                    for(int[] pos:allowedPositionsflipped){
+                        legalMoves.add(new SaboteurMove(flippedCard,pos[0],pos[1],turnPlayer));
+                    }
+                }
+            }
+            else if(card instanceof SaboteurBonus){
+                if(turnPlayer ==1){
+                    if(player1nbMalus > 0) legalMoves.add(new SaboteurMove(card,0,0,turnPlayer));
+                }
+                else if(player2nbMalus>0) legalMoves.add(new SaboteurMove(card,0,0,turnPlayer));
+            }
+            else if(card instanceof SaboteurMalus){
+                legalMoves.add(new SaboteurMove(card,0,0,turnPlayer));
+            }
+            else if(card instanceof SaboteurMap){
+                for(int i =0;i<3;i++){ //for each hidden card that has not be revealed, we can still take a look at it.
+                    if(! this.hiddenRevealed[i]) legalMoves.add(new SaboteurMove(card,hiddenPos[i][0],hiddenPos[i][1],turnPlayer));
+                }
+            }
+            else if(card instanceof SaboteurDestroy){
+                for (int i = 0; i < BOARD_SIZE; i++) {
+                    for (int j = 0; j < BOARD_SIZE; j++) { //we can't destroy an empty tile, the starting, or final tiles.
+                        if(this.board[i][j] != null && (i!=originPos || j!= originPos) && (i != hiddenPos[0][0] || j!=hiddenPos[0][1] )
+                                && (i != hiddenPos[1][0] || j!=hiddenPos[1][1] ) && (i != hiddenPos[2][0] || j!=hiddenPos[2][1] ) ){
+                            legalMoves.add(new SaboteurMove(card,i,j,turnPlayer));
+                        }
+                    }
+                }
+            }
+        }
+        // we can also drop any of the card in our hand
+        for(int i=0;i<hand.size();i++) {
+            legalMoves.add(new SaboteurMove(new SaboteurDrop(), i, 0, turnPlayer));
+        }
+        return legalMoves;
+    }
     public boolean isLegal(SaboteurMove m) {
         // For a move to be legal, the player must have the card in its hand
         // and then the game rules apply.
