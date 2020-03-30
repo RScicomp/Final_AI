@@ -34,6 +34,7 @@ public class StudentPlayer extends SaboteurPlayer {
         super("260729805");
         this.Deck = SaboteurCard.getDeck();
         this.compo = SaboteurCard.getDeckcomposition();
+
         //this.cboardState = new SaboteurBoardState();
     }
     public void printDeck(){
@@ -73,28 +74,45 @@ public class StudentPlayer extends SaboteurPlayer {
         // strategies...
         // MyTools.getSomething();
         SaboteurTile[][] boardtiles = boardState.getHiddenBoard();
-        int[][] board = MyTools.cloneArray(boardState.getHiddenIntBoard());
         this.hand = boardState.getCurrentPlayerCards();
         this.board = boardtiles;
 
-        //Update deck.
+        //Update deck composition.
         this.compo= SaboteurCard.getDeckcomposition();
         this.compo = MyTools.updateDeck(compo,boardtiles);
 
         //Init clone
         SBoardstateC clone = new SBoardstateC();
+
         clone.turnPlayer= boardState.getTurnPlayer();
         clone.player1Cards=MyTools.cloneHand(this.hand);
+
+        //copy compo and board
+        clone.compo = cloneCompo();
         clone.board = MyTools.copyTiles(boardState);
 
+        //initialize the deck from composition and player hand
+        //Ensure the deck is up to date with the players hand and the board.
+        clone.Deck = SaboteurCard.getDeck();
+        clone.Deck = MyTools.getDeckfromcompo(clone.compo);
+        for(int i = 0; i < clone.player1Cards.size();i++){
+            clone.Deck.remove(clone.player1Cards.get(i));
+        }
 
 
-        printBoard();
-        MyTools.findBestMove(4,clone,compo,hand);
+
+        //printBoard();
+        SaboteurMove myMove = MyTools.findBestMove(1,clone,compo,hand);
         //Check all possibilities
         // MyTools.minimax(0,0,clone,this.compo,this.hand);
         // Is random the best you can do?
-        Move myMove = boardState.getRandomMove();
+
+
+        //Remove my card from the deck
+        //Move myMove = boardState.getRandomMove();
+
+
+
 
         printDeck();
 

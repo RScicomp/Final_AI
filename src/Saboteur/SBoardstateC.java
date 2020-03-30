@@ -15,7 +15,7 @@ import java.util.function.UnaryOperator;
 public class SBoardstateC extends BoardState {
     public static final int BOARD_SIZE = 14;
     public static final int originPos = 5;
-
+    public static Map<String,Integer> compo;
     public static final int EMPTY = -1;
     public static final int TUNNEL = 1;
     public static final int WALL = 0;
@@ -24,6 +24,7 @@ public class SBoardstateC extends BoardState {
 
     public SaboteurTile[][] board;
     public int[][] intBoard;
+    public static int[] lastplayedpos = {5,5};
     //player variables:
     // Note: Player 1 is active when turnplayer is 1;
     public ArrayList<SaboteurCard> player1Cards; //hand of player 1
@@ -95,7 +96,7 @@ public class SBoardstateC extends BoardState {
     // You are not allowed to use this method for your agent.
     // Using it will result in potential errors, because it does not returns a correct copy.
     // Here for server purposes.
-    public SaboteurTile[][] copyTiles(SaboteurBoardState boardState){
+    public SaboteurTile[][] copyTiles(SBoardstateC boardState){
 
         SaboteurTile[][] hiddenBoard = boardState.getHiddenBoard();
         SaboteurTile[][] copy = new SaboteurTile[hiddenBoard.length][hiddenBoard.length];
@@ -111,11 +112,21 @@ public class SBoardstateC extends BoardState {
         }
         return(copy);
     }
+    public static int[][] cloneArray(int[][] src) {
+        int length = src.length;
+        int[][] target = new int[length][src[0].length];
+        for (int i = 0; i < length; i++) {
+            System.arraycopy(src[i], 0, target[i], 0, src[i].length);
+        }
+        return target;
+    }
     public SBoardstateC(SBoardstateC pbs) {
         super();
-        this.board = pbs.board;
-
+        this.board = copyTiles(pbs);
+        this.intBoard= cloneArray(pbs.intBoard);
         this.rand = new Random();
+        this.lastplayedpos[0]=pbs.lastplayedpos[0];
+        this.lastplayedpos[0]=pbs.lastplayedpos[1];
 
         //we are not looking for shallow copy (where element are not copied) but deep copy, so that the user can't destroy the board that is sent to him...
         this.player1Cards = new ArrayList<SaboteurCard>();
@@ -270,7 +281,7 @@ public class SBoardstateC extends BoardState {
         }
     }
 
-    private int[][] getIntBoard() {
+    public int[][] getIntBoard() {
         //update the int board.
         //Note that this tool is not available to the player.
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -543,7 +554,7 @@ public class SBoardstateC extends BoardState {
         }
         return legalMoves;
     }
-    public ArrayList<SaboteurMove> getAllLegalMoves(boolean minimizer) {
+    public ArrayList<SaboteurMove> getAllLegalMovesDeck() {
         // Given the current player hand, gives back all legal moves he can play.
         ArrayList<SaboteurCard> hand;
         boolean isBlocked;
@@ -833,6 +844,8 @@ public class SBoardstateC extends BoardState {
         }
         this.draw();
         this.updateWinner();
+        this.lastplayedpos = pos;
+
         turnPlayer = 1 - turnPlayer; // Swap player
         turnNumber++;
     }

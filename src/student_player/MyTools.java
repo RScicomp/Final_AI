@@ -6,10 +6,7 @@ import boardgame.Move;
 //import student_player.MyTools.Path;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 
 public class MyTools {
@@ -19,7 +16,9 @@ public class MyTools {
     public static final int WALL = 0;
     public static final int originPos = 5;
     public static final int[] origin = new int[]{originPos,originPos};
+    public static final int[] originint = new int[] {(originPos*3)+1 ,(originPos*3)+1};
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
+    public static final int[][] hiddenPosint = {{3*(originPos+7),3*(originPos-2)},{3*(originPos+7),3*(originPos)},{3*(originPos+7),3*(originPos+2)}};
     public static boolean[] hiddenRevealed = {false,false,false};
     public static int nuggetpos=-1;
 
@@ -160,6 +159,31 @@ public class MyTools {
         }
         return(copy);
     }
+    public static ArrayList<SaboteurCard> getDeckfromcompo(Map<String,Integer> compo){
+        //returns an unshuffled deck
+        //Map<String,Integer> compo = SaboteurCard.getDeckcomposition();
+        ArrayList<SaboteurCard> deck =new ArrayList<SaboteurCard>();
+        String[] tiles ={"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
+        for(int i=0;i<tiles.length;i++){
+            for(int j=0;j<compo.get(tiles[i]);j++){
+                deck.add(new SaboteurTile(tiles[i]));
+            }
+        }
+        for(int i = 0; i < compo.get("destroy");i++){
+            deck.add(new SaboteurDestroy());
+        }
+        for(int i = 0; i < compo.get("malus");i++){
+            deck.add(new SaboteurMalus());
+        }
+        for(int i = 0; i < compo.get("bonus");i++){
+            deck.add(new SaboteurBonus());
+        }
+        for(int i = 0; i < compo.get("map");i++){
+            deck.add(new SaboteurMap());
+        }
+
+        return deck;
+    }
     public static SaboteurTile[][] copyTiles(SBoardstateC boardState){
 
         SaboteurTile[][] hiddenBoard = boardState.getHiddenBoard();
@@ -277,7 +301,7 @@ public class MyTools {
         return Math.sqrt((source[1] - destination[1]) * (source[1] - destination[1]) + (source[0] - destination[0]) * (source[0] - destination[0]));
     }
 
-    public double mean(double[] values){
+    public static double mean(double[] values){
         double sum = 0;
         for (int i = 0; i < values.length; i++) {
             sum += values[i];
@@ -315,32 +339,87 @@ public class MyTools {
 
         return intBoard;
     }
-    public static int evaluate(SBoardstateC board, Map<String,Integer> deck, ArrayList<SaboteurCard> hand){
+    public static int evaluate(SBoardstateC board){
         int score= 0;
+
         int[][] intboard = cloneArray(board.getHiddenIntBoard());
+        System.out.println("ORGIN:" + intboard[originint[0]][originint[1]]);
         //first evaluate considering the nugget if exists
         //Next evaluate by deduction if there is 2 revealed,
         //Next evaluate your hand, the deck and the board. If favorable make aggressive moves. Else sabotage.
         //Next make sure the move you aren't playing will make the other win.
 
-        //This is a winning move.
+
         if(nuggetpos != -1){
-            if(pathToMe(intboard,origin,hiddenPos[nuggetpos])){
+            int[] goalpos = hiddenPosint[nuggetpos];
+
+            //This is a winning move.
+            if(pathToMe(intboard,origin,goalpos)){
                 return 100;
+            }else{
+                double maxscore = 1000;
+                for (int i = 14; i < (intboard.length-2);i++) {
+                    for (int j = 0; j < (intboard[i].length - 2); j++) {
+                        //System.out.println("COORDS:" + i +", " + j);
+                        int[] destination = new int[]{i, j};
+                        if (intboard[i][j] == 1) {
+                            //print2d2(intboard);
+                            if (pathToMe(intboard, originint, destination)) {
+                                System.out.println("There's a path here");
+                                destination[0] = destination[0]/3;
+                                destination[1] = destination[1]/3;
+                                maxscore = Math.min(maxscore, euclideanDistance(destination, goalpos));
+                                //System.out.println("Distance to nugget "+euclideanDistance(destination, goalpos));
+                            }
+                        }
+                    }
+                }
+                return ((int)maxscore);
             }
+        }else{
+            double maxscore = 1000;
+
+            for (int i = 14; i < (intboard.length-2);i++){
+                for(int j = 0; j < (intboard[i].length-2);j++){
+                    //System.out.println("COORDS:" + i +", " + j);
+                    int[] destination = new int[]{i,j};
+                    if(intboard[i][j]==1) {
+                        if (pathToMeplaced(intboard, originint, destination)) {
+                            //print2d2(intboard);
+                            double[] distances = new double[]{0, 0, 0};
+                            destination[0] = destination[0]/3;
+                            destination[1] = destination[1]/3;
+                            for (int k = 0; k < 3; k++) {
+                                distances[k] = euclideanDistance(destination, hiddenPos[k]);
+                                //System.out.println("Distance to goal " + k + ": " + (10/ distances[k]));
+                            }
+                            maxscore = Math.min(maxscore, mean(distances));
+
+                        }
+                    }
+                }
+            }
+            if(maxscore >0) {
+                System.out.println("State of the Board Score:  " +  (10/maxscore));
+            }
+            return((int)(10/maxscore));
+
         }
 
-
-        return score;
+    }
+    public static void print2d2(int[][] matrix){
+        for (int i =0; i < matrix.length;i++){
+            for (int j =0;j<matrix[i].length;j++){
+                System.out.print(matrix[i][j]+",");
+            }
+            System.out.println("");
+        }
     }
 
-    public static int minimax(int currentdepth, int maxdepth, SBoardstateC boardState, Map<String,Integer> deck, ArrayList<SaboteurCard> hand,boolean maxer){
+    public static int minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer){
         System.out.println("Current Depth: " + currentdepth);
 
-        SaboteurTile[][] currentState = copyTiles(boardState);
-        SaboteurTile[][] newState;
-        ArrayList<SaboteurCard> newHand = cloneHand(hand);
-        Map<String,Integer> newDeck = cloneDeck(deck);
+        //Map<String,Integer> newDeck = cloneDeck(deck);
 
         //int[][] currentintState = getHiddenIntBoard(boardState);
 /*
@@ -351,7 +430,7 @@ public class MyTools {
         bestVal = max( bestVal, value)
         return bestVal
 
-*/      int score = evaluate(boardState,newDeck,newHand);
+*/      int score = evaluate(boardState);
 
         if(currentdepth == maxdepth)
             return score;
@@ -364,7 +443,12 @@ public class MyTools {
 
         if(maxer == true) {
             ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
-
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+            }
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth " + currentdepth +": " + possible_actions.get(i).getPosPlayed()[0] +", "+ possible_actions.get(i).getPosPlayed()[1] );
+            }
             if (possible_actions.size()== 0)
                 return 0;
 
@@ -372,24 +456,20 @@ public class MyTools {
             int best_value = Integer.MIN_VALUE;//Assuming maximizer
             for (int i = 0; i < possible_actions.size(); i++) {
 
-                //make the move
-                //update board
+
                 SaboteurMove played = possible_actions.get(i);
-                newState = placeBoard(played, boardState);
-                //update hand and deck (making sure to clone within functions)
-                newHand = cloneHand(hand);
-                newHand.remove(played.getCardPlayed());
+                //Create a new copy board to run simulations on
+                SBoardstateC newboard = new SBoardstateC(boardState);
+                //make the move
+                newboard.processMove(played);
+                printBoard(newboard.board);
+                //Update the composition of the Deck
+                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
 
-                newDeck = updateDeck(deck, newState);
-                printBoard(newState);
 
-                SBoardstateC newboard = new SBoardstateC();
-                newboard.turnPlayer = boardState.getTurnPlayer();
-                newboard.player1Cards = cloneHand(newHand);
-                newboard.board = copyTiles(newState);
-                //newboard.processMove(played);
 
-                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard, newDeck, newHand,false));
+
+                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard,false));
 
                 //oldBState.processMove(possible_actions.get(i));
                 //System.out.println(oldBoardState.getBoardForDisplay());
@@ -398,28 +478,26 @@ public class MyTools {
         }
         else{
             int best = 1000;
-            ArrayList<SaboteurMove> possible_actions = new ArrayList<>();
-
+            //Get All legalmoves from player2
+            ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMovesDeck();
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+            }
             for (int i = 0; i < possible_actions.size(); i++) {
 
                 //make the move
                 //update board
                 SaboteurMove played = possible_actions.get(i);
-                newState = placeBoard(played, boardState);
-                //update hand and deck (making sure to clone within functions)
-                //newHand = cloneHand(decklist);
-                newHand.remove(played.getCardPlayed());
-                newDeck = updateDeck(deck, newState);
-                printBoard(newState);
 
-                SBoardstateC newboard = new SBoardstateC();
-                newboard.turnPlayer = boardState.getTurnPlayer();
-                newboard.player1Cards = cloneHand(newHand);
-
-                newboard.board = copyTiles(newState);
+                SBoardstateC newboard = new SBoardstateC(boardState);
+                //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
+                newboard.processMove(played);
+                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
+                printBoard(newboard.board);
 
 
-                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard, newDeck, newHand,true));
+
+                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard,true));
 
                 //oldBState.processMove(possible_actions.get(i));
                 //System.out.println(oldBoardState.getBoardForDisplay());
@@ -436,6 +514,9 @@ public class MyTools {
 
 
         ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
+        for (int i =0 ; i < possible_actions.size();i++){
+            System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+        }
         SaboteurMove bestMove = possible_actions.get(0);
         SaboteurTile[][] currentState = copyTiles(boardState);
         SaboteurTile[][] newState;
@@ -448,19 +529,19 @@ public class MyTools {
             // move.
             // Make the move
             SaboteurMove played = possible_actions.get(i);
-            newState = placeBoard(played, boardState);
-            //update hand and deck (making sure to clone within functions)
-            newHand = cloneHand(hand);
-            newHand.remove(played.getCardPlayed());
-            newDeck = updateDeck(deck, newState);
-            printBoard(newState);
 
-            SBoardstateC newboard = new SBoardstateC();
-            newboard.turnPlayer = boardState.getTurnPlayer();
-            newboard.player1Cards = cloneHand(newHand);
-            newboard.board = copyTiles(newState);
 
-            int moveVal = minimax(0,maxdepth,newboard,newDeck,newHand,true);
+            SBoardstateC newboard = new SBoardstateC(boardState);
+            //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
+
+
+            newboard.processMove(played);
+            printBoard(newboard.board);
+
+            //newboard.compo = updateDeck(newboard.compo,newboard.board);
+
+
+            int moveVal = minimax(0,maxdepth,newboard,true);
             // If the value of the current move is
             // more than the best value, then update
             // best/
@@ -488,6 +569,35 @@ public class MyTools {
             System.out.println(Deck.get(i).getName());
         }
     }
+    public static boolean pathToMeplaced(int[][] boardog, int[] originPos, int[] targetPos){
+        int[][] board =cloneArray(boardog);
+        for (int i =0 ;i < board.length;i++){
+            for (int j =0;j <board[i].length;j++){
+                if(i == targetPos[0] && j == targetPos[1]){
+                    if(board[i][j]==1) {
+                        board[i][j] = 2;
+                    }
+                }
+                if(board[i][j] == -1 || board[i][j]==0){
+                    board[i][j] = 0;
+                }
+                if(board[i][j]==1){
+                    board[i][j]=3;
+                }
+
+            }
+        }
+
+        board[originPos[0]][originPos[1]] = 1;
+
+        //print2d2(board);
+        //System.out.println("");
+        boolean existPath = Path.isPath(board, board.length);
+
+        return existPath;
+
+    }
+
     public static boolean pathToMe(int[][] boardog, int[] originPos, int[] targetPos){
         int[][] board =cloneArray(boardog);
         for (int i =0 ;i < board.length;i++){
