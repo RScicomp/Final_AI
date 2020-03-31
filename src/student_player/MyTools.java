@@ -552,6 +552,7 @@ public class MyTools {
             if (moveVal > bestVal)
             {
                 bestMove=played;
+                bestVal = moveVal;
             }
         }
 

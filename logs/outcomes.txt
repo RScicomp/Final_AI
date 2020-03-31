@@ -49,3 +49,6 @@
 70,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00070.log,
 72,260729805,RandomPlayer,1,RandomPlayer,2,game00072.log,TIMEOUT
 73,260729805,RandomPlayer,1,RandomPlayer,2,game00073.log,TIMEOUT
+92,RandomPlayer,260729805,GAMEOVER DRAW,NOBODY,56,game00092.log,
+93,260729805,RandomPlayer,1,RandomPlayer,2,game00093.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:12), PosOfUse: (6, 5)
+94,260729805,RandomPlayer,1,RandomPlayer,4,game00094.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:10), PosOfUse: (4, 4)

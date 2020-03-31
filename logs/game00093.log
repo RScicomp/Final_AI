@@ -1,0 +1,14 @@
+# Server version 0.08 running on localhost:8123
+# Game ID: 93
+# Board class: Saboteur.SaboteurBoard
+# Timeout: 20000
+# First Move Timeout: 30000
+# Date: Mon Mar 30 23:48:53 EDT 2020
+# Player 1: Player-0, '260729805', running on localhost
+# Player 2: Player-1, 'RandomPlayer', running on localhost
+START Player-0 260729805
+START Player-1 RandomPlayer
+BoardInit:Tile:5,Map,Tile:5,Map,Malus,Tile:7,Bonus,Map,Tile:8,Tile:2,Map,Tile:0,Tile:6,Tile:6,Map,Tile:0,Destroy,Tile:7,Map,Tile:10,Tile:3,Destroy,Tile:7,Tile:10,Tile:1,Bonus,Tile:9,Tile:7,Tile:11,Tile:8,Tile:10,Tile:5,Tile:5,Tile:0,Tile:12,Tile:0,Tile:9,Tile:8,Tile:15,Tile:4,Bonus-Tile:8,Tile:6,Tile:9,Tile:6,Tile:14,Tile:8,Tile:9-Tile:9,Bonus,Tile:6,Tile:13,Tile:7,Destroy,Malus-Tile:hidden2,Tile:nugget,Tile:hidden1
+Drop 5 0 1
+GAMEOVER ILLEGAL MOVE: Player 0, CardUsed: (Tile:12), PosOfUse: (6, 5) WINNER 1
+# Game ended: Mon Mar 30 23:48:55 EDT 2020
