@@ -49,3 +49,14 @@
 70,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00070.log,
 72,260729805,RandomPlayer,1,RandomPlayer,2,game00072.log,TIMEOUT
 73,260729805,RandomPlayer,1,RandomPlayer,2,game00073.log,TIMEOUT
+95,260729805,RandomPlayer,1,RandomPlayer,4,game00095.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:6), PosOfUse: (5, 6)
+96,260729805,RandomPlayer,1,RandomPlayer,2,game00096.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:4), PosOfUse: (5, 4)
+97,260729805,RandomPlayer,1,RandomPlayer,6,game00097.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:2), PosOfUse: (4, 1)
+98,260729805,RandomPlayer,1,RandomPlayer,4,game00098.log,ILLEGAL MOVE: Player 0, CardUsed: (Map), PosOfUse: (12, 3)
+99,260729805,RandomPlayer,1,RandomPlayer,2,game00099.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:8), PosOfUse: (5, 4)
+100,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00100.log,
+101,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00101.log,
+102,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00102.log,
+103,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00103.log,
+104,260729805,RandomPlayer,GAMEOVER DRAW,NOBODY,56,game00104.log,
+105,Human,RandomPlayer,GAMEOVER USER CANCEL UNDECIDED,NOBODY,4,game00105.log,USER CANCEL

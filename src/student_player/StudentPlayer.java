@@ -25,43 +25,11 @@ public class StudentPlayer extends SaboteurPlayer {
      * important, because this is what the code that runs the competition uses to
      * associate you with your agent. The constructor should do nothing else.
      */
-    private ArrayList<SaboteurCard> Deck;
-    private Map<String,Integer> compo;
-    private ArrayList<SaboteurCard> hand;
-    private SaboteurTile[][] board;
-    private SaboteurBoardState cboardState;
+
     public StudentPlayer() {
         super("260729805");
-        this.Deck = SaboteurCard.getDeck();
-        this.compo = SaboteurCard.getDeckcomposition();
+    }
 
-        //this.cboardState = new SaboteurBoardState();
-    }
-    public void printDeck(){
-        for (int i =0 ; i < this.Deck.size();i++){
-            System.out.println(this.Deck.get(i).getName());
-        }
-    }
-    public void printBoard(){
-        for (int i =0 ;i < board.length;i++){
-            for (int j =0;j<board[i].length;j++) {
-                if(board[i][j]!=null) {
-                    System.out.print(board[i][j].getIdx());
-                }else{
-                    System.out.print("-");
-                }
-            }
-            System.out.println("");
-        }
-    }
-    public Map<String,Integer> cloneCompo(){
-        Map<String,Integer> new_map = new HashMap<String,Integer>();
-
-        // using putAll method
-        new_map.putAll(this.compo);
-        return(new_map);
-
-    }
 
     /**
      * This is the primary method that you need to implement. The ``boardState``
@@ -73,51 +41,14 @@ public class StudentPlayer extends SaboteurPlayer {
         // For example, maybe you'll need to load some pre-processed best opening
         // strategies...
         // MyTools.getSomething();
-        SaboteurTile[][] boardtiles = boardState.getHiddenBoard();
-        this.hand = boardState.getCurrentPlayerCards();
-        this.board = boardtiles;
+        ArrayList<SaboteurCard> hand = boardState.getCurrentPlayerCards();
+        Map<String,Integer> compo = MyTools.updateDeck(SaboteurCard.getDeckcomposition(),boardState.getHiddenBoard());
+        ArrayList<SaboteurCard> deck = MyTools.getDeckfromcompo(compo);
 
-        //Update deck composition.
-        this.compo= SaboteurCard.getDeckcomposition();
-        this.compo = MyTools.updateDeck(compo,boardtiles);
+        SBoardstateC clone = new SBoardstateC(boardState,deck);
 
-        //Init clone
-        SBoardstateC clone = new SBoardstateC();
+        SaboteurMove myMove = clone.getRandomMove();
 
-        clone.turnPlayer= boardState.getTurnPlayer();
-        clone.player1Cards=MyTools.cloneHand(this.hand);
-
-        //copy compo and board
-        clone.compo = cloneCompo();
-        clone.board = MyTools.copyTiles(boardState);
-
-        //initialize the deck from composition and player hand
-        //Ensure the deck is up to date with the players hand and the board.
-        clone.Deck = SaboteurCard.getDeck();
-        clone.Deck = MyTools.getDeckfromcompo(clone.compo);
-        for(int i = 0; i < clone.player1Cards.size();i++){
-            clone.Deck.remove(clone.player1Cards.get(i));
-        }
-
-
-
-
-        //printBoard();
-        SaboteurMove myMove = MyTools.findBestMove(1,clone,compo,hand);
-        //Check all possibilities
-        // MyTools.minimax(0,0,clone,this.compo,this.hand);
-        // Is random the best you can do?
-
-
-        //Remove my card from the deck
-        //Move myMove = boardState.getRandomMove();
-
-
-
-
-        printDeck();
-
-        // Return your move to be processed by the server.
         return myMove;
     }
 }

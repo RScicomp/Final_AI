@@ -97,20 +97,11 @@ public class SBoardstateC extends BoardState {
     // Using it will result in potential errors, because it does not returns a correct copy.
     // Here for server purposes.
     public SaboteurTile[][] copyTiles(SBoardstateC boardState){
-
-        SaboteurTile[][] hiddenBoard = boardState.getHiddenBoard();
-        SaboteurTile[][] copy = new SaboteurTile[hiddenBoard.length][hiddenBoard.length];
-
-        for (int i = 0; i < hiddenBoard.length;i++){
-            for(int j = 0; j < hiddenBoard[i].length;j++){
-                if(hiddenBoard[i][j] == null){
-                    copy[i][j]= null;
-                }else {
-                    copy[i][j] = new SaboteurTile(hiddenBoard[i][j].getIdx());
-                }
-            }
+        SaboteurTile[][] board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            System.arraycopy(boardState.board[i], 0, board[i], 0, BOARD_SIZE);
         }
-        return(copy);
+        return board;
     }
     public static int[][] cloneArray(int[][] src) {
         int length = src.length;
@@ -125,6 +116,7 @@ public class SBoardstateC extends BoardState {
         this.board = copyTiles(pbs);
         this.intBoard= cloneArray(pbs.intBoard);
         this.rand = new Random();
+
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
         this.lastplayedpos[0]=pbs.lastplayedpos[1];
 
@@ -141,6 +133,7 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.Deck.size();i++){
             this.Deck.add(i,SaboteurCard.copyACard(pbs.Deck.get(i).getName()));
         }
+
         System.arraycopy(pbs.player1hiddenRevealed,0,this.player1hiddenRevealed,0,pbs.player1hiddenRevealed.length);
         System.arraycopy(pbs.player2hiddenRevealed,0,this.player2hiddenRevealed,0,pbs.player2hiddenRevealed.length);
         System.arraycopy(pbs.hiddenRevealed,0,this.hiddenRevealed,0,pbs.hiddenRevealed.length);
@@ -671,6 +664,83 @@ public class SBoardstateC extends BoardState {
         }
         return legal;
     }
+    public SBoardstateC(SaboteurBoardState pbs,  ArrayList<SaboteurCard> Deck) {
+        super();
+        this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
+        SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            System.arraycopy(pbsboard, 0, this.board[i], 0, BOARD_SIZE);
+        }
+
+        ArrayList<SaboteurCard> pbsplayer1Cards;
+        ArrayList<SaboteurCard> pbsplayer2Cards;
+
+        boolean[] pbsplayer1hiddenRevealed= {false,false,false};
+        boolean[] pbsplayer2hiddenRevealed= {false,false,false};
+        boolean[] pbshiddenRevealed= {false,false,false};
+
+        int pbsplayer1nbMalus=pbs.getNbMalus(1);
+        int pbsplayer2nbMalus=pbs.getNbMalus(2);
+
+        this.rand = new Random();
+
+        if(turnPlayer==1) {
+            pbsplayer1Cards = pbs.getCurrentPlayerCards();
+            int i = 0;
+            for (int[] pos : hiddenPos) {
+                if (board[pos[0]][pos[1]].getIdx().equals('8')) {
+                    pbsplayer1hiddenRevealed[i] = true;
+                    pbshiddenRevealed[i]=true;
+                }
+                i+=1;
+            }
+            pbsplayer2Cards = Deck;
+        }else{
+            pbsplayer2Cards = pbs.getCurrentPlayerCards();
+            int i = 0;
+            for (int[] pos : hiddenPos) {
+                if (board[pos[0]][pos[1]].getIdx().equals('8')) {
+                    pbsplayer2hiddenRevealed[i] = true;
+                    pbshiddenRevealed[i]=true;
+                }
+                i+=1;
+            }
+            pbsplayer1Cards = Deck;
+        }
+
+
+
+        //we are not looking for shallow copy (where element are not copied) but deep copy, so that the user can't destroy the board that is sent to him...
+        this.player1Cards = new ArrayList<SaboteurCard>();
+        for(int i=0;i<pbsplayer1Cards.size();i++){
+            this.player1Cards.add(i,SaboteurCard.copyACard(pbsplayer1Cards.get(i).getName()));
+        }
+        this.player2Cards = new ArrayList<SaboteurCard>();
+        for(int i=0;i<pbsplayer2Cards.size();i++){
+            this.player2Cards.add(i,SaboteurCard.copyACard(pbsplayer2Cards.get(i).getName()));
+        }
+        this.Deck = new ArrayList<SaboteurCard>();
+        for(int i=0;i<Deck.size();i++){
+            this.Deck.add(i,SaboteurCard.copyACard(Deck.get(i).getName()));
+        }
+
+        System.arraycopy(pbsplayer1hiddenRevealed,0,this.player1hiddenRevealed,0,pbsplayer1hiddenRevealed.length);
+        System.arraycopy(pbsplayer2hiddenRevealed,0,this.player2hiddenRevealed,0,pbsplayer2hiddenRevealed.length);
+        System.arraycopy(pbshiddenRevealed,0,this.hiddenRevealed,0,pbshiddenRevealed.length);
+
+        // Problem: we also need to make a copy of the private array where hiddenCards are stored.... So we make it protected!
+        this.hiddenCards = new SaboteurTile[pbs.hiddenCards.length];
+        for(int i=0;i<pbs.hiddenCards.length;i++){
+            this.hiddenCards[i] = new SaboteurTile(pbs.hiddenCards[i].getName().split(":")[1]); //Note: we might encounter a problem here, and should define card as cloneable
+        }
+
+        this.player1nbMalus = pbsplayer1nbMalus;
+        this.player2nbMalus = pbsplayer2nbMalus;
+        this.winner = pbs.getWinner();
+        this.turnPlayer = pbs.getTurnPlayer();
+        this.turnNumber = pbs.getTurnNumber();
+    }
+
 
     private void draw(){
         if(this.Deck.size()>0){
@@ -683,7 +753,7 @@ public class SBoardstateC extends BoardState {
         }
     }
 
-    public void processMove(SaboteurMove m) throws IllegalArgumentException {
+    public void processMove(SaboteurMove m,boolean opponent) throws IllegalArgumentException {
 
         if(m.getFromBoard()){
             this.initializeFromStringForInitialCopy(m.getBoardInit());
@@ -840,7 +910,9 @@ public class SBoardstateC extends BoardState {
             if(turnPlayer==1) this.player1Cards.remove(pos[0]);
             else this.player2Cards.remove(pos[0]);
         }
-        this.draw();
+        if(!opponent) {
+            this.draw();
+        }
         this.updateWinner();
         this.lastplayedpos = pos;
 
