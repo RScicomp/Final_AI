@@ -19,3 +19,5 @@ Tile:8 9 5 1
 Malus 0 0 0
 Drop 4 0 1
 Tile:10 5 2 0
+Bonus 0 0 1
+Destroy 4 5 0

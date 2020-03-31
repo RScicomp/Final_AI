@@ -754,7 +754,7 @@ public class SBoardstateC extends BoardState {
         }
     }
 
-    public void processMove(SaboteurMove m,boolean opponent) throws IllegalArgumentException {
+    public void processMove(SaboteurMove m,boolean draw) throws IllegalArgumentException {
 
         if(m.getFromBoard()){
             this.initializeFromStringForInitialCopy(m.getBoardInit());
@@ -911,7 +911,7 @@ public class SBoardstateC extends BoardState {
             if(turnPlayer==1) this.player1Cards.remove(pos[0]);
             else this.player2Cards.remove(pos[0]);
         }
-        if(!opponent) {
+        if(draw) {
             this.draw();
         }
         this.updateWinner();

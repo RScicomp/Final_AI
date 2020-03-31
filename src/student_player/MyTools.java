@@ -220,7 +220,7 @@ public class MyTools {
         result= result/euclideanDistance(board.lastplayedpos,hiddenPos[1]);
         if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
             System.out.println("Path exists");
-            result+=10.0;
+            result+=3.0;
         }
         //Destroy tiles that disconnect
 
@@ -298,7 +298,7 @@ public class MyTools {
         //Return remaining possible moves. Feed to getalllegal.
         return compo;
     }
-    public static double minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer){
+    public static double minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer, double maxerscore){
         System.out.println("Current Depth: " + currentdepth);
 
         //Map<String,Integer> newDeck = cloneDeck(deck);
@@ -311,10 +311,11 @@ public class MyTools {
         value = minimax(board, depth+1, false)
         bestVal = max( bestVal, value)
         return bestVal
+
 */      double score = evaluate2(boardState);
 
         if(currentdepth == maxdepth)
-            return score;
+            return score+maxerscore;
 
         if (score == 100)
             return score;
@@ -322,7 +323,7 @@ public class MyTools {
         if (score == -100)
             return score;
 
-
+//Ensure that if we look into the future we don ot help the other win
         if(maxer == true) {
             ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
             System.out.println("MOVES:");
@@ -333,43 +334,59 @@ public class MyTools {
                 return 0;
 
             double best = -1000;
-
+            SaboteurMove bestmove = possible_actions.get(0);
+            SBoardstateC board = new SBoardstateC(boardState);
             for (int i = 0; i < possible_actions.size(); i++) {
 
 
                 SaboteurMove played = possible_actions.get(i);
-                System.out.println("Playing simulation: " +played.toPrettyString());
+
 
                 //Create a new copy board to run simulations on
                 SBoardstateC newboard = new SBoardstateC(boardState);
                 //make the move
                 if(boardState.isLegal(played)) {
-                    newboard.processMove(played, false);
+                    if(!played.getCardPlayed().getName().equals("Map")||!played.getCardPlayed().getName().equals("Destroy")) {
+                        newboard.processMove(played, false);
+                    }
                 }else{
                     System.out.println("Tried playing an illegal move!");
                 }
-                printBoard(newboard.board);
-                System.out.println("The resulting evaluation: " + evaluate2(newboard));
+                //printBoard(newboard.board);
+                //System.out.println("The resulting evaluation: " + evaluate2(newboard));
 
                 //Update the composition of the Deck.
                 newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
 
 
                 double res = 0;
-                res += minimax((currentdepth + 1), maxdepth, newboard,true);
+                res = minimax((currentdepth + 1), maxdepth, newboard,false,maxerscore+score);
+                System.out.println("Res:" + res);
+                if(best<res){
+                    bestmove = played;
+                    board = newboard;
+                }
                 best = Math.max(best, res);
 
 
                 //oldBState.processMove(possible_actions.get(i));
                 //System.out.println(oldBoardState.getBoardForDisplay());
             }
+
+            System.out.println("Best Move: " +bestmove.toPrettyString());
+            System.out.println("The resulting evaluation: " + evaluate2(board));
+            printBoard(board.board);
             return best;
         }
         else{
+
+
             double best = -1000;
             //Get All legalmoves from player2
             ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMovesDeck();
             System.out.println("MOVES:");
+            SaboteurMove bestmove = possible_actions.get(0);
+            SBoardstateC board = new SBoardstateC(boardState);
             for (int i =0 ; i < possible_actions.size();i++){
                 System.out.println(possible_actions.get(i).toPrettyString());
             }
@@ -382,20 +399,30 @@ public class MyTools {
                 SBoardstateC newboard = new SBoardstateC(boardState);
                 //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
                 if(boardState.isLegal(played)) {
-                    newboard.processMove(played, false);
+                    if(!played.getCardPlayed().getName().equals("Map")||!played.getCardPlayed().getName().equals("Destroy")) {
+                        newboard.processMove(played, false);
+                    }
                 }else{
                     System.out.println("Tried playing an illegal move!");
                 }
                 newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
-                printBoard(newboard.board);
+
 
                 double res = 0;
-                res += minimax((currentdepth + 1), maxdepth, newboard,true);
+                res = minimax((currentdepth + 1), maxdepth, newboard,true,maxerscore);
+                if(best<res){
+                    bestmove = played;
+                    board = newboard;
+                }
                 best = Math.max(best, res);
+
 
                 //oldBState.processMove(possible_actions.get(i));
                 //System.out.println(oldBoardState.getBoardForDisplay());
             }
+            System.out.println("Best Move: " +bestmove.toPrettyString());
+            System.out.println("The resulting evaluation: " + evaluate2(board));
+            printBoard(board.board);
             return best;
         }
 
@@ -413,7 +440,7 @@ public class MyTools {
         }
         SaboteurMove bestMove = possible_actions.get(0);
 
-
+        SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
             // compute evaluation function for this move.
 
@@ -421,19 +448,16 @@ public class MyTools {
 
             // Make the move
             SBoardstateC newboard = new SBoardstateC(boardState);
-            if(boardState.isLegal(played)) {
+            if(boardState.isLegal(played)||!played.getCardPlayed().getName().equals("Destroy")) {
                 newboard.processMove(played, false);
             }else{
                 System.out.println("Tried playing an illegal move!");
             }
 
-            System.out.println("Playing simulation: " +played.toPrettyString());
-            printBoard(newboard.board);
-            System.out.println("The resulting evaluation: " + evaluate2(newboard));
             //newboard.compo = updateDeck(newboard.compo,newboard.board);
 
 
-            double moveVal = minimax(0,maxdepth,newboard,true);
+            double moveVal = minimax(0,maxdepth,newboard,true,0);
             // If the value of the current move is
             // more than the best value, then update
             // best/
@@ -441,9 +465,13 @@ public class MyTools {
             {
                 bestMove=played;
                 bestVal = moveVal;
+                pboard=newboard;
+
             }
         }
-
+        System.out.println("Playing simulation from first move: " +bestMove.toPrettyString());
+        System.out.println("The resulting evaluation: " + evaluate2(pboard));
+        printBoard(pboard.board);
 
         return bestMove;
     }
