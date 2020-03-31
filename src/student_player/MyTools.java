@@ -56,6 +56,179 @@ public class MyTools {
         return copy;
 
     }
+    public static double euclideanDistance(int[] source, int[] destination){
+        return Math.sqrt((source[1] - destination[1]) * (source[1] - destination[1]) + (source[0] - destination[0]) * (source[0] - destination[0]));
+    }
+
+    public static double mean(double[] values){
+        double sum = 0;
+        for (int i = 0; i < values.length; i++) {
+            sum += values[i];
+        }
+        return sum / values.length;
+    }
+    public static int[][] cloneArray(int[][] src) {
+        int length = src.length;
+        int[][] target = new int[length][src[0].length];
+        for (int i = 0; i < length; i++) {
+            System.arraycopy(src[i], 0, target[i], 0, src[i].length);
+        }
+        return target;
+    }
+    public static boolean pathToMe(int[][] boardog, int[] originPos, int[] targetPos){
+        int[][] board =cloneArray(boardog);
+        for (int i =0 ;i < board.length;i++){
+            for (int j =0;j <board[i].length;j++){
+                if(board[i][j] == -1 || board[i][j]==0){
+                    board[i][j] = 0;
+                }
+                if(board[i][j]==1){
+                    board[i][j]=3;
+                }
+            }
+        }
+
+        board[originPos[0]][originPos[1]] = 1;
+
+        int endX = targetPos[0];
+        int endY = targetPos[1];
+
+
+        board[endX][endY]=2;
+        board[(endX+1)][endY]=2;
+        board[(endX+2)][endY]=2;
+
+        board[endX][endY+1]=2;
+        board[endX+1][endY+1]=2;
+        board[endX+2][endY+1]=2;
+        board[endX][endY+2]=2;
+        board[endX+1][endY+2]=2;
+        board[endX+2][endY+2]=2;
+
+        //print2d2(board);
+        //System.out.println("");
+        boolean existPath = Path.isPath(board, board.length);
+
+        return existPath;
+
+    }
+    public static boolean pathToMeplaced(int[][] boardog, int[] originPos, int[] targetPos){
+        int[][] board =cloneArray(boardog);
+        for (int i =0 ;i < board.length;i++){
+            for (int j =0;j <board[i].length;j++){
+                if(i == targetPos[0] && j == targetPos[1]){
+                    if(board[i][j]==1) {
+                        board[i][j] = 2;
+                    }
+                }
+                if(board[i][j] == -1 || board[i][j]==0){
+                    board[i][j] = 0;
+                }
+                if(board[i][j]==1){
+                    board[i][j]=3;
+                }
+
+            }
+        }
+
+        board[originPos[0]][originPos[1]] = 1;
+
+        //print2d2(board);
+        //System.out.println("");
+        boolean existPath = Path.isPath(board, board.length);
+
+        return existPath;
+
+    }
+
+
+    public static int evaluate(SBoardstateC board){
+        int score= 0;
+
+        int[][] intboard = cloneArray(board.getHiddenIntBoard());
+        System.out.println("ORGIN:" + intboard[originint[0]][originint[1]]);
+        //first evaluate considering the nugget if exists
+        //Next evaluate by deduction if there is 2 revealed,
+        //Next evaluate your hand, the deck and the board. If favorable make aggressive moves. Else sabotage.
+        //Next make sure the move you aren't playing will make the other win.
+
+
+        if(nuggetpos != -1){
+            int[] goalpos = hiddenPosint[nuggetpos];
+
+            //Check if this is a winning move.
+            if(pathToMe(intboard,origin,goalpos)){
+                return 100;
+            }else{
+                double maxscore = 1000;
+                for (int i = 12; i < (intboard.length-2);i++) {
+                    for (int j = 0; j < (intboard[i].length - 2); j++) {
+                        //System.out.println("COORDS:" + i +", " + j);
+                        int[] destination = new int[]{i, j};
+                        if (intboard[i][j] == 1) {
+                            //print2d2(intboard);
+                            if (pathToMe(intboard, originint, destination)) {
+                                System.out.println("There's a path here");
+                                destination[0] = destination[0]/3;
+                                destination[1] = destination[1]/3;
+                                maxscore = Math.min(maxscore, euclideanDistance(destination, goalpos));
+                                //System.out.println("Distance to nugget "+euclideanDistance(destination, goalpos));
+                            }
+                        }
+                    }
+                }
+                return ((int)maxscore);
+            }
+        }else{
+            double maxscore = 1000;
+
+            for (int i = 14; i < (intboard.length-2);i++){
+                for(int j = 0; j < (intboard[i].length-2);j++){
+                    //System.out.println("COORDS:" + i +", " + j);
+                    int[] destination = new int[]{i,j};
+                    //If a walkable path
+                    if(intboard[i][j]==1) {
+                        //If there is a path to origin from destination
+                        if (pathToMeplaced(intboard, originint, destination)) {
+
+                            //check for connection points
+                            double[] distances = new double[]{0, 0, 0};
+                            destination[0] = destination[0]/3;
+                            destination[1] = destination[1]/3;
+                            for (int k = 0; k < 3; k++) {
+                                distances[k] = euclideanDistance(destination, hiddenPos[k]);
+                                //System.out.println("Distance to goal " + k + ": " + (10/ distances[k]));
+                            }
+                            maxscore = Math.min(maxscore, mean(distances));
+
+                        }
+                    }
+                }
+            }
+            if(maxscore >0) {
+                System.out.println("State of the Board Score:  " +  (10/maxscore));
+            }
+            return((int)(10/maxscore));
+            //Drop, Map play first, Destroy -> Destroy.
+
+        }
+
+    }
+    public static int evaluate2(SBoardstateC board){
+        int[][] intboard= board.intBoard;
+        int[] pos = {-1,-1};
+        for(int i = intboard.length-1; i > 0 ;i--){
+           for(int j = 0; j < intboard[i].length;j++){
+               if(intboard[i][j]==1){
+                   pos[0]=i;
+                   pos[1]=j;
+                   break;
+               }
+           }
+        }
+
+        return(10/(int)euclideanDistance(pos,hiddenPos[1]));
+    }
     public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles){
         Map<String,Integer> compo = cloneDeck(compoog);
 
@@ -128,6 +301,149 @@ public class MyTools {
         //Return remaining possible moves. Feed to getalllegal.
         return compo;
     }
+    public static int minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer){
+        System.out.println("Current Depth: " + currentdepth);
+
+        //Map<String,Integer> newDeck = cloneDeck(deck);
+
+        //int[][] currentintState = getHiddenIntBoard(boardState);
+/*
+        if isMaximizingPlayer :
+        bestVal = -INFINITY
+        for each move in board :
+        value = minimax(board, depth+1, false)
+        bestVal = max( bestVal, value)
+        return bestVal
+*/      int score = evaluate2(boardState);
+
+        if(currentdepth == maxdepth)
+            return score;
+
+        if (score == 100)
+            return score;
+        if (score == -100)
+            return score;
+
+
+        if(maxer == true) {
+            ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+            }
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth " + currentdepth +": " + possible_actions.get(i).getPosPlayed()[0] +", "+ possible_actions.get(i).getPosPlayed()[1] );
+            }
+            if (possible_actions.size()== 0)
+                return 0;
+
+            int best = -1000;
+            int best_value = Integer.MIN_VALUE;//Assuming maximizer
+            for (int i = 0; i < possible_actions.size(); i++) {
+
+
+                SaboteurMove played = possible_actions.get(i);
+                //Create a new copy board to run simulations on
+                SBoardstateC newboard = new SBoardstateC(boardState);
+                //make the move
+                newboard.processMove(played,false);
+                printBoard(newboard.board);
+
+                //Update the composition of the Deck.
+                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
+
+
+
+                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard,false));
+
+                //oldBState.processMove(possible_actions.get(i));
+                //System.out.println(oldBoardState.getBoardForDisplay());
+            }
+            return best;
+        }
+        else{
+            int best = 1000;
+            //Get All legalmoves from player2
+            ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMovesDeck();
+            for (int i =0 ; i < possible_actions.size();i++){
+                System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+            }
+            for (int i = 0; i < possible_actions.size(); i++) {
+
+                //make the move
+                //update board
+                SaboteurMove played = possible_actions.get(i);
+
+                SBoardstateC newboard = new SBoardstateC(boardState);
+                //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
+                newboard.processMove(played,true);
+                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
+                printBoard(newboard.board);
+
+
+
+                best = Math.max(best, minimax((currentdepth + 1), maxdepth, newboard,true));
+
+                //oldBState.processMove(possible_actions.get(i));
+                //System.out.println(oldBoardState.getBoardForDisplay());
+            }
+            return best;
+        }
+
+    }
+    static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState)
+    {
+        int bestVal = -1000;
+
+
+
+        ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
+        for (int i =0 ; i < possible_actions.size();i++){
+            System.out.print("POS depth 0 : " + possible_actions.get(i).getCardPlayed().getName());
+        }
+        SaboteurMove bestMove = possible_actions.get(0);
+
+
+        for (int i = 0; i < possible_actions.size(); i++) {
+            // compute evaluation function for this move.
+
+            SaboteurMove played = possible_actions.get(i);
+
+            // Make the move
+            SBoardstateC newboard = new SBoardstateC(boardState);
+            newboard.processMove(played,false);
+
+            printBoard(newboard.board);
+
+            //newboard.compo = updateDeck(newboard.compo,newboard.board);
+
+
+            int moveVal = minimax(0,maxdepth,newboard,true);
+            // If the value of the current move is
+            // more than the best value, then update
+            // best/
+            if (moveVal > bestVal)
+            {
+                bestMove=played;
+                bestVal = moveVal;
+            }
+        }
+
+
+        return bestMove;
+    }
+    public static void printBoard(SaboteurTile[][] board){
+        System.out.println("Printing BOARD!");
+        for (int i =0 ;i < board.length;i++){
+            for (int j =0;j<board[i].length;j++) {
+                if(board[i][j]!=null) {
+                    System.out.print(board[i][j].getIdx());
+                }else{
+                    System.out.print("-");
+                }
+            }
+            System.out.println("");
+        }
+    }
 
 
     static class Path {
@@ -165,6 +481,7 @@ public class MyTools {
             else
                 return false;
         }
+
 
 
         // method for checking boundries

@@ -114,7 +114,7 @@ public class SBoardstateC extends BoardState {
     public SBoardstateC(SBoardstateC pbs) {
         super();
         this.board = copyTiles(pbs);
-        this.intBoard= cloneArray(pbs.intBoard);
+        this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
 
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
@@ -667,9 +667,10 @@ public class SBoardstateC extends BoardState {
     public SBoardstateC(SaboteurBoardState pbs,  ArrayList<SaboteurCard> Deck) {
         super();
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
+        this.intBoard = pbs.getHiddenIntBoard();
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
         for (int i = 0; i < BOARD_SIZE; i++) {
-            System.arraycopy(pbsboard, 0, this.board[i], 0, BOARD_SIZE);
+            System.arraycopy(pbsboard[i], 0, this.board[i], 0, BOARD_SIZE);
         }
 
         ArrayList<SaboteurCard> pbsplayer1Cards;
