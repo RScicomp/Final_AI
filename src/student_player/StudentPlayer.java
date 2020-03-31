@@ -46,7 +46,7 @@ public class StudentPlayer extends SaboteurPlayer {
         ArrayList<SaboteurCard> deck = MyTools.getDeckfromcompo(compo);
 
         SBoardstateC clone = new SBoardstateC(boardState,deck);
-        SaboteurMove myMove = MyTools.findBestMove(1,clone);
+        SaboteurMove myMove = MyTools.findBestMove(0,clone);
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;
     }
