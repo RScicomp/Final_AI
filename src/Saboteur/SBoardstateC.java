@@ -114,6 +114,7 @@ public class SBoardstateC extends BoardState {
     public SBoardstateC(SBoardstateC pbs) {
         super();
         this.board = copyTiles(pbs);
+
         this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
 
@@ -551,6 +552,7 @@ public class SBoardstateC extends BoardState {
         // Given the current player hand, gives back all legal moves he can play.
         ArrayList<SaboteurCard> hand;
         boolean isBlocked;
+
 
         hand = this.player2Cards;
         isBlocked= player2nbMalus > 0;
