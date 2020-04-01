@@ -216,6 +216,7 @@ public class MyTools {
     public static double evaluate2(SBoardstateC board){
         int[][] intboard= board.intBoard;
         double result = 20.0;
+
         if(nuggetpos!=-1){
             System.out.println("We know where the nugget is");
             result= result/euclideanDistance(board.lastplayedpos,hiddenPos[nuggetpos]);
@@ -240,7 +241,7 @@ public class MyTools {
 
         if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
             System.out.println("Path exists");
-            result+=6.0;
+            result+=10.0;
         }
 
         //Check if winning move or connects to hidden

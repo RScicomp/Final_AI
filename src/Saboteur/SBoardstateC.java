@@ -25,6 +25,7 @@ public class SBoardstateC extends BoardState {
     public SaboteurTile[][] board;
     public int[][] intBoard;
     public static int[] lastplayedpos = {5,5};
+    public static SaboteurMove lastplayed;
     //player variables:
     // Note: Player 1 is active when turnplayer is 1;
     public ArrayList<SaboteurCard> player1Cards; //hand of player 1
@@ -120,6 +121,7 @@ public class SBoardstateC extends BoardState {
 
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
         this.lastplayedpos[0]=pbs.lastplayedpos[1];
+        this.lastplayed = pbs.lastplayed;
 
         //we are not looking for shallow copy (where element are not copied) but deep copy, so that the user can't destroy the board that is sent to him...
         this.player1Cards = new ArrayList<SaboteurCard>();
@@ -922,6 +924,7 @@ public class SBoardstateC extends BoardState {
         }
         this.updateWinner();
         this.lastplayedpos = pos;
+        this.lastplayed=m;
 
         turnPlayer = 1 - turnPlayer; // Swap player
         turnNumber++;

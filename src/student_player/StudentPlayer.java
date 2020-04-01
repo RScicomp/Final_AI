@@ -47,12 +47,15 @@ public class StudentPlayer extends SaboteurPlayer {
 
 
         SBoardstateC clone = new SBoardstateC(boardState,deck);
-        SaboteurMove myMove = MyTools.findBestMove(1, clone);
+        SaboteurMove myMove = MyTools.findBestMove(0, clone);
         System.out.println("Turn:"+boardState.getTurnPlayer());
         for(int i =0 ; i <boardState.getCurrentPlayerCards().size();i++){
             System.out.println("HAND:"+boardState.getCurrentPlayerCards().get(i).getName());
         }
-
+        if(!boardState.isLegal(myMove)){
+            System.out.println("Illegal move!");
+            myMove = boardState.getRandomMove();
+        }
 
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;
