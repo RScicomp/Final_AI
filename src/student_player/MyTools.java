@@ -217,14 +217,54 @@ public class MyTools {
     public static double evaluate2(SBoardstateC board){
         int[][] intboard= board.intBoard;
         double result = 20.0;
-        result= result/euclideanDistance(board.lastplayedpos,hiddenPos[1]);
+        if(nuggetpos!=-1){
+            System.out.println("We know where the nugget is");
+            result= result/euclideanDistance(board.lastplayedpos,hiddenPos[nuggetpos]);
+        }else{
+            double truecount = 0;
+            int index =0;
+            double mean = 0;
+            //Get the mean distance
+            for(boolean rev: hiddenRevealed){
+
+                if(rev==false){
+                    truecount+=1;
+                    mean+= euclideanDistance(board.lastplayedpos,hiddenPos[index]);
+                }
+                index+=1;
+            }
+            mean = mean/truecount;
+            System.out.println("MEAN: " + mean);
+            result= result/mean;
+        }
+
         if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
             System.out.println("Path exists");
-            result+=3.0;
+            result+=6.0;
         }
         //Destroy tiles that disconnect
 
         return(result);
+    }
+    public static void checkHidden(SBoardstateC boardState){
+        SaboteurTile[][] boardtiles=boardState.board;
+
+        int index =0;
+        int nonhiddencount = 0;
+        for(int[] pos : hiddenPos){
+            if(boardtiles[pos[0]][pos[1]].getIdx().contains("hidden")){
+                System.out.println("Updating Hidden");
+                hiddenRevealed[index]=true;
+                nonhiddencount+=1;
+            }
+            if(boardtiles[pos[0]][pos[1]].getIdx().contains("hidden"))
+            index+=1;
+        }
+        if(nonhiddencount == 2){
+
+        }
+
+
     }
     public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles){
         Map<String,Integer> compo = cloneDeck(compoog);
@@ -235,6 +275,8 @@ public class MyTools {
                     String id=boardtiles[i][j].getIdx();
 
                     //Check if a non card or a hidden card
+
+
                     if(!id.equals("entrance")&&!id.equals("hidden1")&&!id.equals("nugget")&&!id.equals("hidden2")) {
                         if(!(i == 12 && (j == hiddenPos[0][1] || j == hiddenPos[1][1]|| j == hiddenPos[2][1]))){
 
@@ -287,7 +329,6 @@ public class MyTools {
                                 hiddenRevealed[nuggetpos] = true;
                             }
 
-
                         }
 
 
@@ -295,15 +336,26 @@ public class MyTools {
                 }
             }
         }
+        int count = 0;
+        int index = 0;
+        int falseindex = 0;
+        for(boolean rev: hiddenRevealed){
+            if(rev == true){
+                count +=1;
+            }else{
+                falseindex=index;
+            }
+        }
+        if(count ==2 ){
+            System.out.println("We know where the nugget is");
+            nuggetpos=falseindex;
+        }
+
         //Return remaining possible moves. Feed to getalllegal.
         return compo;
     }
     public static double minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer, double maxerscore){
         System.out.println("Current Depth: " + currentdepth);
-
-        //Map<String,Integer> newDeck = cloneDeck(deck);
-
-        //int[][] currentintState = getHiddenIntBoard(boardState);
 /*
         if isMaximizingPlayer :
         bestVal = -INFINITY
@@ -313,6 +365,9 @@ public class MyTools {
         return bestVal
 
 */      double score = evaluate2(boardState);
+        if(score > 1000){
+            score = 20;
+        }
 
         if(currentdepth == maxdepth)
             return score+maxerscore;
@@ -341,40 +396,43 @@ public class MyTools {
 
                 SaboteurMove played = possible_actions.get(i);
 
+                if(!played.getCardPlayed().getName().equals("Drop")) {
 
-                //Create a new copy board to run simulations on
-                SBoardstateC newboard = new SBoardstateC(boardState);
-                //make the move
-                if(boardState.isLegal(played)) {
-                    if(!played.getCardPlayed().getName().equals("Map")||!played.getCardPlayed().getName().equals("Destroy")) {
-                        newboard.processMove(played, false);
+
+                    //Create a new copy board to run simulations on
+                    SBoardstateC newboard = makeMove(played,boardState,false);/*new SBoardstateC(boardState);
+                    //make the move
+                    if (boardState.isLegal(played)) {
+                        if (!played.getCardPlayed().getName().equals("Map") || !played.getCardPlayed().getName().equals("Destroy")) {
+
+                            newboard.processMove(played, false);
+                        }
+                    } else {
+                        System.out.println("Tried playing an illegal move!");
+                    }*/
+                    //printBoard(newboard.board);
+                    //System.out.println("The resulting evaluation: " + evaluate2(newboard));
+
+                    //Update the composition of the Deck.
+                    newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(), newboard.board);
+
+
+                    double res = 0;
+                    res = minimax((currentdepth + 1), maxdepth, newboard, false, maxerscore + score);
+                    //System.out.println("Res:" + res);
+                    if (best < res) {
+                        bestmove = played;
+                        board = newboard;
                     }
-                }else{
-                    System.out.println("Tried playing an illegal move!");
+                    best = Math.max(best, res);
+
                 }
-                //printBoard(newboard.board);
-                //System.out.println("The resulting evaluation: " + evaluate2(newboard));
-
-                //Update the composition of the Deck.
-                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
-
-
-                double res = 0;
-                res = minimax((currentdepth + 1), maxdepth, newboard,false,maxerscore+score);
-                System.out.println("Res:" + res);
-                if(best<res){
-                    bestmove = played;
-                    board = newboard;
-                }
-                best = Math.max(best, res);
-
-
                 //oldBState.processMove(possible_actions.get(i));
                 //System.out.println(oldBoardState.getBoardForDisplay());
             }
 
             System.out.println("Best Move: " +bestmove.toPrettyString());
-            System.out.println("The resulting evaluation: " + evaluate2(board));
+            System.out.println("The resulting evaluation: " + best);
             printBoard(board.board);
             return best;
         }
@@ -395,30 +453,28 @@ public class MyTools {
                 //make the move
                 //update board
                 SaboteurMove played = possible_actions.get(i);
-
-                SBoardstateC newboard = new SBoardstateC(boardState);
-                //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
-                if(boardState.isLegal(played)) {
-                    if(!played.getCardPlayed().getName().equals("Map")||!played.getCardPlayed().getName().equals("Destroy")) {
-                        newboard.processMove(played, false);
+                if(!played.getCardPlayed().getName().equals("Drop")) {
+                    SBoardstateC newboard = makeMove(played,boardState,false); /*new SBoardstateC(boardState);
+                    //Copy player 1 and 2 hands into new board as well as the board and deck. Process the move and update composition
+                    if (boardState.isLegal(played)) {
+                        if (!played.getCardPlayed().getName().equals("Map") || !played.getCardPlayed().getName().equals("Destroy")) {
+                            newboard.processMove(played, false);
+                        }
+                    } else {
+                        System.out.println("Tried playing an illegal move!");
                     }
-                }else{
-                    System.out.println("Tried playing an illegal move!");
+                    newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(), newboard.board);
+*/
+
+                    double res = 0;
+                    res = minimax((currentdepth + 1), maxdepth, newboard, true, maxerscore);
+                    if (best < res) {
+                        bestmove = played;
+                        board = newboard;
+                    }
+                    best = Math.max(best, res);
                 }
-                newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
 
-
-                double res = 0;
-                res = minimax((currentdepth + 1), maxdepth, newboard,true,maxerscore);
-                if(best<res){
-                    bestmove = played;
-                    board = newboard;
-                }
-                best = Math.max(best, res);
-
-
-                //oldBState.processMove(possible_actions.get(i));
-                //System.out.println(oldBoardState.getBoardForDisplay());
             }
             System.out.println("Best Move: " +bestmove.toPrettyString());
             System.out.println("The resulting evaluation: " + evaluate2(board));
@@ -431,8 +487,6 @@ public class MyTools {
     {
         double bestVal = -1000;
 
-
-
         ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
         System.out.println("MOVES:");
         for (int i =0 ; i < possible_actions.size();i++){
@@ -442,25 +496,14 @@ public class MyTools {
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
-            // compute evaluation function for this move.
 
             SaboteurMove played = possible_actions.get(i);
-
-            // Make the move
-            SBoardstateC newboard = new SBoardstateC(boardState);
-            if(boardState.isLegal(played)||!played.getCardPlayed().getName().equals("Destroy")) {
-                newboard.processMove(played, false);
-            }else{
-                System.out.println("Tried playing an illegal move!");
-            }
-
-            //newboard.compo = updateDeck(newboard.compo,newboard.board);
-
+            SBoardstateC newboard = makeMove(played,boardState,false);
 
             double moveVal = minimax(0,maxdepth,newboard,true,0);
             // If the value of the current move is
             // more than the best value, then update
-            // best/
+            // best
             if (moveVal > bestVal)
             {
                 bestMove=played;
@@ -474,6 +517,51 @@ public class MyTools {
         printBoard(pboard.board);
 
         return bestMove;
+    }
+    public static SBoardstateC makeMove(SaboteurMove played,SBoardstateC boardState,boolean draw){
+        SBoardstateC newboard = new SBoardstateC(boardState);
+        boolean play = true;
+        if(boardState.isLegal(played) && !played.getCardPlayed().getName().equals("Destroy")) {
+            if(played.getCardPlayed().getName().equals("Map")){
+                if(nuggetpos!=-1){
+                    play = false;
+                    System.out.println("We know where the nugget is");
+                }else{
+                    int[] position = played.getPosPlayed();
+                    double truecount = 0;
+                    int index =0;
+                    for(boolean rev: hiddenRevealed){
+                        if(rev == false){
+                            truecount+=1;
+                            if(!(hiddenPos[index][0] == position[0]) && !(hiddenPos[index][1]==position[1]) ){
+                                play = true;
+                            }else{
+                                play=false;
+                            }
+                        }
+                        index+=1;
+                    }
+                    if(truecount == 2 && play == true){
+                        System.out.println("We know where the nugget is by deduction");
+                        nuggetpos = index;
+                        play = false;
+                    }else{
+                        play=true;
+                    }
+
+                }
+            }
+            if(play==true) {
+                newboard.processMove(played, draw);
+            }else{
+                System.out.println("Not playing a map card because we already know where the nugget is.");
+            }
+        }else{
+            System.out.println("Tried playing an illegal move!");
+        }
+
+        newboard.compo=updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
+        return newboard;
     }
     public static void printBoard(SaboteurTile[][] board){
         System.out.println("Printing BOARD!");
