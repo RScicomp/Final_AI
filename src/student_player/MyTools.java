@@ -233,6 +233,7 @@ public class MyTools {
                 }
                 index+=1;
             }
+            //Calcualte average distance to non-revealed tiles since we don't know where the nugget is.
             mean = mean/truecount;
             System.out.println("MEAN: " + mean);
             result= result/mean;
@@ -251,20 +252,27 @@ public class MyTools {
 
         int index =0;
         int nonhiddencount = 0;
+        int falseindex = -1;
         for(int[] pos : hiddenPos){
             if(boardtiles[pos[0]][pos[1]].getIdx().contains("hidden")){
                 System.out.println("Updating Hidden");
                 hiddenRevealed[index]=true;
                 nonhiddencount+=1;
             }
-            if(boardtiles[pos[0]][pos[1]].getIdx().contains("hidden"))
+            if(!boardtiles[pos[0]][pos[1]].getIdx().contains("hidden") && !boardtiles[pos[0]][pos[1]].getIdx().contains("nugget")){
+                falseindex=index;
+            }
+            if(boardtiles[pos[0]][pos[1]].getIdx().contains("nugget")){
+                nuggetpos=index;
+                hiddenRevealed[index]=true;
+                break;
+            }
             index+=1;
         }
-        if(nonhiddencount == 2){
-
+        if(nonhiddencount == 2 && falseindex!=-1){
+            hiddenRevealed[falseindex]=true;
+            nuggetpos= falseindex;
         }
-
-
     }
     public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles){
         Map<String,Integer> compo = cloneDeck(compoog);
@@ -522,33 +530,13 @@ public class MyTools {
         SBoardstateC newboard = new SBoardstateC(boardState);
         boolean play = true;
         if(boardState.isLegal(played) && !played.getCardPlayed().getName().equals("Destroy")) {
+
+            checkHidden(boardState);
+            //If we have map card don't play cuz we know where the nugget is
             if(played.getCardPlayed().getName().equals("Map")){
                 if(nuggetpos!=-1){
                     play = false;
                     System.out.println("We know where the nugget is");
-                }else{
-                    int[] position = played.getPosPlayed();
-                    double truecount = 0;
-                    int index =0;
-                    for(boolean rev: hiddenRevealed){
-                        if(rev == false){
-                            truecount+=1;
-                            if(!(hiddenPos[index][0] == position[0]) && !(hiddenPos[index][1]==position[1]) ){
-                                play = true;
-                            }else{
-                                play=false;
-                            }
-                        }
-                        index+=1;
-                    }
-                    if(truecount == 2 && play == true){
-                        System.out.println("We know where the nugget is by deduction");
-                        nuggetpos = index;
-                        play = false;
-                    }else{
-                        play=true;
-                    }
-
                 }
             }
             if(play==true) {
@@ -556,8 +544,8 @@ public class MyTools {
             }else{
                 System.out.println("Not playing a map card because we already know where the nugget is.");
             }
-        }else{
-            System.out.println("Tried playing an illegal move!");
+        }else if(!boardState.isLegal(played)){
+            System.out.println("Tried playing an illegal move or Destroy");
         }
 
         newboard.compo=updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);

@@ -476,6 +476,7 @@ public class SBoardstateC extends BoardState {
                             if (this.verifyLegit(card.getPath(), new int[]{i + moves[m][0], j + moves[m][1]} )){
                                 possiblePos.add(new int[]{i + moves[m][0], j +moves[m][1]});
                             }
+
                         }
                     }
                 }

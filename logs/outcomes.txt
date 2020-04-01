@@ -103,3 +103,4 @@
 184,260729805,RandomPlayer,GAMEOVER USER CANCEL UNDECIDED,NOBODY,6,game00184.log,USER CANCEL
 185,260729805,Human,1,Human,20,game00185.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:12), PosOfUse: (12, 6)
 186,260729805,Human,1,Human,24,game00186.log,ILLEGAL MOVE: Player 0, CardUsed: (Map), PosOfUse: (12, 7)
+189,260729805,Human,1,Human,20,game00189.log,ILLEGAL MOVE: Player 0, CardUsed: (Tile:1), PosOfUse: (12, 4)
