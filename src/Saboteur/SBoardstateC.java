@@ -129,6 +129,7 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.player2Cards.size();i++){
             this.player2Cards.add(i,SaboteurCard.copyACard(pbs.player2Cards.get(i).getName()));
         }
+
         this.Deck = new ArrayList<SaboteurCard>();
         for(int i=0;i<pbs.Deck.size();i++){
             this.Deck.add(i,SaboteurCard.copyACard(pbs.Deck.get(i).getName()));
@@ -669,6 +670,8 @@ public class SBoardstateC extends BoardState {
         super();
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         this.intBoard = pbs.getHiddenIntBoard();
+        this.turnPlayer= pbs.getTurnPlayer();
+
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
         for (int i = 0; i < BOARD_SIZE; i++) {
             System.arraycopy(pbsboard[i], 0, this.board[i], 0, BOARD_SIZE);

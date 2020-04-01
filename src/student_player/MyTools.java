@@ -210,10 +210,9 @@ public class MyTools {
             }
             return((int)(10/maxscore));
             //Drop, Map play first, Destroy -> Destroy.
-
         }
-
     }
+
     public static double evaluate2(SBoardstateC board){
         int[][] intboard= board.intBoard;
         double result = 20.0;
@@ -242,6 +241,21 @@ public class MyTools {
         if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
             System.out.println("Path exists");
             result+=6.0;
+        }
+
+        //Check if winning move or connects to hidden
+        int index = 0;
+        for(int[] pos : hiddenPos) {
+            if (pathToMeplaced(intboard, originint, pos)) {
+                //If nugget.
+                if(index==nuggetpos){
+                    result+=1000;
+                }
+
+                System.out.println("Path exists");
+                result += 100;
+            }
+            index+=1;
         }
         //Destroy tiles that disconnect
 
@@ -500,24 +514,24 @@ public class MyTools {
         for (int i =0 ; i < possible_actions.size();i++){
             System.out.println(possible_actions.get(i).toPrettyString());
         }
-        SaboteurMove bestMove = possible_actions.get(0);
+        SaboteurMove bestMove = boardState.getRandomMove();
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
 
             SaboteurMove played = possible_actions.get(i);
             SBoardstateC newboard = makeMove(played,boardState,false);
+            if(boardState.isLegal(played)) {
+                double moveVal = minimax(0, maxdepth, newboard, true, 0);
+                // If the value of the current move is
+                // more than the best value, then update
+                // best
+                if (moveVal > bestVal) {
+                    bestMove = played;
+                    bestVal = moveVal;
+                    pboard = newboard;
 
-            double moveVal = minimax(0,maxdepth,newboard,true,0);
-            // If the value of the current move is
-            // more than the best value, then update
-            // best
-            if (moveVal > bestVal)
-            {
-                bestMove=played;
-                bestVal = moveVal;
-                pboard=newboard;
-
+                }
             }
         }
         System.out.println("Playing simulation from first move: " +bestMove.toPrettyString());
