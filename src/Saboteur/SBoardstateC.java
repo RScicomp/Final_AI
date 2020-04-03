@@ -45,6 +45,7 @@ public class SBoardstateC extends BoardState {
     public int turnNumber;
     public int winner;
     public Random rand;
+    public SaboteurCard destroyed;
 
     public SBoardstateC() {
         super();
@@ -115,7 +116,7 @@ public class SBoardstateC extends BoardState {
     public SBoardstateC(SBoardstateC pbs) {
         super();
         this.board = copyTiles(pbs);
-
+        this.compo=pbs.compo;
         this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
 
@@ -676,10 +677,12 @@ public class SBoardstateC extends BoardState {
         this.intBoard = pbs.getHiddenIntBoard();
         this.turnPlayer= pbs.getTurnPlayer();
 
+
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
         for (int i = 0; i < BOARD_SIZE; i++) {
             System.arraycopy(pbsboard[i], 0, this.board[i], 0, BOARD_SIZE);
         }
+        //this.getIntBoard();
 
         ArrayList<SaboteurCard> pbsplayer1Cards;
         ArrayList<SaboteurCard> pbsplayer2Cards;
@@ -699,7 +702,7 @@ public class SBoardstateC extends BoardState {
             for (int[] pos : hiddenPos) {
                 if (board[pos[0]][pos[1]].getIdx().equals('8')) {
                     pbsplayer1hiddenRevealed[i] = true;
-                    pbshiddenRevealed[i]=true;
+                    //pbshiddenRevealed[i]=true;
                 }
                 i+=1;
             }
@@ -710,7 +713,7 @@ public class SBoardstateC extends BoardState {
             for (int[] pos : hiddenPos) {
                 if (board[pos[0]][pos[1]].getIdx().equals('8')) {
                     pbsplayer2hiddenRevealed[i] = true;
-                    pbshiddenRevealed[i]=true;
+                    //pbshiddenRevealed[i]=true;
                 }
                 i+=1;
             }
@@ -775,6 +778,7 @@ public class SBoardstateC extends BoardState {
         // And then execute the move.
         // Concerning the map observation, the player then has to check by himself the result of its observation.
         //Note: this method is ran in a BoardState ran by the server as well as in a BoardState ran by the player.
+        /*
         if (!isLegal(m)) {
 //            System.out.println("Found an invalid Move for player " + this.turnPlayer+" of board"+ this.hashCode());
 //            ArrayList<SaboteurCard> hand = this.turnPlayer==1? this.player1Cards : this.player2Cards;
@@ -788,11 +792,15 @@ public class SBoardstateC extends BoardState {
 //                }
 //            }
             throw new IllegalArgumentException("Invalid move. Move: " + m.toPrettyString());
-        }
+        }*/
 
         SaboteurCard testCard = m.getCardPlayed();
         int[] pos = m.getPosPlayed();
+        if(m.getCardPlayed().getName().equals("Destroy")){
+            destroyed= board[pos[0]][pos[1]];
+            System.out.println("You destroyed:"+ destroyed.getName());
 
+        }
         if(testCard instanceof SaboteurTile){
             this.board[pos[0]][pos[1]] = new SaboteurTile(((SaboteurTile) testCard).getIdx());
             if(turnPlayer==1){
@@ -1023,7 +1031,6 @@ public class SBoardstateC extends BoardState {
                     int[] targetPos2 = {targetPos[0]*3+1, targetPos[1]*3+1};
                     if (cardPath(originTargets2, targetPos2, false)) {
                         System.out.println("0-1 path found");
-
                         this.hiddenRevealed[currentTargetIdx] = true;
                         this.player1hiddenRevealed[currentTargetIdx] = true;
                         this.player2hiddenRevealed[currentTargetIdx] = true;
