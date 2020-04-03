@@ -329,9 +329,11 @@ public class MyTools {
     public static boolean checkConnected(SaboteurCard card){
         if(tileCard(card)) {
             int[][] path= ((SaboteurTile)card).getPath();
-            if (path[0][1] == 1 && path[2][1] == 1 || path[0][1] == 1 && path[1][0] == 1 ||
-                    path[0][1] == 1 && path[1][2] == 1 || path[1][0] == 1 && path[1][2] == 1) {
-                return true;
+            if(path[1][1]==1) {
+                if (path[0][1] == 1 && path[2][1] == 1 || path[0][1] == 1 && path[1][0] == 1 ||
+                        path[0][1] == 1 && path[1][2] == 1 || path[1][0] == 1 && path[1][2] == 1) {
+                    return true;
+                }
             }
         }
         return false;
@@ -699,21 +701,29 @@ public class MyTools {
 
     public static boolean activeSabotager(SBoardstateC board){
         ArrayList<SaboteurCard> possible_actions = board.getCurrentPlayerCards();
-        int sabotagingcards = 0;
-        int buildingcards = 0;
-        int prospectingcards = 0;
+        double sabotagingcards = 0;
+        double buildingcards = 0;
+        double prospectingcards = 0;
         Map<String,Integer> deckcomp = board.compo;
         for (int i =0;i < possible_actions.size();i++){
             SaboteurCard card = possible_actions.get(i);
-            if(checkConnected(card)==true||card.getName().equals("Bonus")){
+            if(checkConnected(card)==true||card.getName().equals("Bonus")||card.getName().equals("Malus")){
                 buildingcards +=1;
             }else if (card.getName().equals("Destroy")||card.getName().equals("Malus")||card.getName().equals("Tile")){
-                prospectingcards+=1;
+                sabotagingcards+=1;
+            }else{
+                sabotagingcards+=1;
             }
         }
-        return (prospectingcards>buildingcards);
+        System.out.println("Sabotage Ratio: " + sabotagingcards +"/"+buildingcards);
+        return (sabotagingcards>buildingcards);
     }
-
+    public static boolean isSabotagingMove(SaboteurMove played){
+        if(played.getCardPlayed().getName().equals("Destroy") ||played.getCardPlayed().getName().equals("Malus")){
+            return true;
+        }
+        return false;
+    }
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions )
     {
         double bestVal = -1000;
@@ -729,14 +739,15 @@ public class MyTools {
         boardState=checkHiddenupdate(boardState);
         SaboteurMove bestMove = boardState.getRandomMove();
         SaboteurMove worstMove = boardState.getRandomMove();
-
+        boolean sabotage = false;
         if(activeSabotager(boardState)){
-            System.out.println("Active Sabotage recommended");
+            System.out.println("Sabotager!");
+            sabotage= true;
         }
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
-
+            double moveVal=0;
             //Play bonus card every time malused
             SaboteurMove played = possible_actions.get(i);
             if(isMalused(boardState) && played.getCardPlayed().getName().equals("Bonus")){
@@ -746,11 +757,17 @@ public class MyTools {
             if(played.getCardPlayed().getName().equals("Map") && playMap(boardState,played.getPosPlayed())){
                 return played;
             }
+            if(sabotage==true){
+                if(isSabotagingMove(played)){
+                    moveVal+=5;
+                    System.out.println("Sabotaging move");
+                }
+            }
 
 
             SBoardstateC newboard = makeMove(played, boardState, false);
             //if (boardState.isLegal(played)) {
-            double moveVal = evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
+            moveVal+= evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
             System.out.println("MOVE VALUE: " +played.toPrettyString()+" " +moveVal);
             // If the value of the current move is
             // more than the best value, then update

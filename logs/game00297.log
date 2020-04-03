@@ -13,3 +13,13 @@ Tile:6 6 5 1
 Tile:7 7 5 0
 Tile:9 7 6 1
 Tile:5_flip 8 6 0
+Tile:5 8 5 1
+Tile:5_flip 9 5 0
+Tile:10 9 4 1
+Map 12 3 0
+Tile:8 9 3 1
+Tile:7 9 2 0
+Tile:6 10 3 1
+Tile:8 11 3 0
+GAMEOVER WINNER 0
+# Game ended: Fri Apr 03 03:18:35 EDT 2020
