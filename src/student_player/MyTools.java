@@ -419,8 +419,6 @@ public class MyTools {
         boolean[] phiddenRevealed;
         if(boardState.getTurnNumber()==1){
             phiddenRevealed=boardState.player1hiddenRevealed;
-            System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.player1hiddenRevealed[0] + boardState.player1hiddenRevealed[1] + boardState.player1hiddenRevealed[1]);
-
         }else{
             phiddenRevealed=boardState.player2hiddenRevealed;
         }
@@ -434,7 +432,7 @@ public class MyTools {
                 }
             }
             if (nonhiddencount == 2) {
-                System.out.println("Great. We know where it is");
+                System.out.println("Great. We know where it is at turn: "+boardState.getTurnNumber());
                 nuggetpos = falseindex;
                 boardState.nuggetpos=falseindex;
                 if(boardState.getTurnPlayer()==1) {
@@ -446,28 +444,7 @@ public class MyTools {
                     //boardState.hiddenRevealed[falseindex] = true;
                 }
             }
-        }/*
-        for(int[] pos : hiddenPos){
-            if(boardtiles[pos[0]][pos[1]].getIdx().contains("hidden")){
-                System.out.println("Updating Hidden");
-                hiddenRevealed[index]=true;
-                nonhiddencount+=1;
-            }
-            if(!boardtiles[pos[0]][pos[1]].getIdx().contains("hidden") && !boardtiles[pos[0]][pos[1]].getIdx().contains("nugget")){
-                falseindex=index;
-            }
-            if(boardtiles[pos[0]][pos[1]].getIdx().contains("nugget")){
-                nuggetpos=index;
-                hiddenRevealed[index]=true;
-                break;
-            }
-            index+=1;
         }
-        if(nonhiddencount == 2 && falseindex!=-1){
-            hiddenRevealed[falseindex]=true;
-            nuggetpos= falseindex;
-        }*/
-        System.out.println("Nuggetpos"+ boardState.nuggetpos);
 
         return boardState;
     }
@@ -514,46 +491,10 @@ public class MyTools {
                                 }
 
                             }
-
                         }
-
-                    }else{
-                        //Deal with nuggets.
-                        if(id.equals("nugget")){
-                            switch (j) {
-                                case 3:
-                                    nuggetpos=0;
-                                case 5:
-                                    nuggetpos=1;
-                                case 7:
-                                    nuggetpos=2;
-                                default:
-                                    nuggetpos=-1;
-                            }
-                            if(nuggetpos >= 0 && nuggetpos <= 2) {
-                                hiddenRevealed[nuggetpos] = true;
-                            }
-
-                        }
-
-
                     }
                 }
             }
-        }
-        int count = 0;
-        int index = 0;
-        int falseindex = 0;
-        for(boolean rev: hiddenRevealed){
-            if(rev == true){
-                count +=1;
-            }else{
-                falseindex=index;
-            }
-        }
-        if(count ==2 ){
-            System.out.println("We know where the nugget is");
-            nuggetpos=falseindex;
         }
 
         //Return remaining possible moves. Feed to getalllegal.
@@ -721,11 +662,12 @@ public class MyTools {
     {
         double bestVal = -1000;
         double worstVal = 1000;
+
         if(boardState.nuggetpos==-1){
             System.out.println("NOT FOUND");
         }
         boardState=checkHiddenupdate(boardState);
-        if(boardState.nuggetpos==-1){
+        if(boardState.nuggetpos!=-1){
             System.out.println("FOUND");
         }
         System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.hiddenRevealed[0] + boardState.hiddenRevealed[1] + boardState.hiddenRevealed[1]);
