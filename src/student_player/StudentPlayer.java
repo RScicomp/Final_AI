@@ -45,10 +45,9 @@ public class StudentPlayer extends SaboteurPlayer {
         Map<String,Integer> compo = MyTools.updateDeck(SaboteurCard.getDeckcomposition(),boardState.getHiddenBoard());
         ArrayList<SaboteurCard> deck = MyTools.getDeckfromcompo(compo);
 
-
         SBoardstateC clone = new SBoardstateC(boardState,deck);
-        clone.compo=compo;
         clone = MyTools.checkHiddenupdate(clone);
+
         SaboteurMove myMove = MyTools.findBestMove(0, clone,boardState.getAllLegalMoves());
         System.out.println("Turn:"+boardState.getTurnPlayer());
 

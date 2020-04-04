@@ -4,6 +4,7 @@ import Saboteur.cardClasses.*;
 import boardgame.Board;
 import boardgame.BoardState;
 import boardgame.Move;
+import student_player.MyTools;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -114,7 +115,36 @@ public class SBoardstateC extends BoardState {
             System.arraycopy(src[i], 0, target[i], 0, src[i].length);
         }
         return target;
-    }
+    }/*
+    public LinkedHashMap<String, Integer> sortHashMapByValues(
+            HashMap<String,Integer> passedMap) {
+        List<String> mapKeys = new ArrayList<>(passedMap.keySet());
+        List<Integer> mapValues = new ArrayList<>(passedMap.values());
+        Collections.sort(mapValues);
+        Collections.sort(mapKeys);
+
+        LinkedHashMap<String, Integer sortedMap =
+                new LinkedHashMap<>();
+
+        Iterator<Integer> valueIt = mapValues.iterator();
+        while (valueIt.hasNext()) {
+            Integer val = valueIt.next();
+            Iterator<String> keyIt = mapKeys.iterator();
+
+            while (keyIt.hasNext()) {
+                String key = keyIt.next();
+                Integer comp1 = passedMap.get(key);
+                Integer comp2 = val;
+
+                if (comp1.equals(comp2)) {
+                    keyIt.remove();
+                    sortedMap.put(key, val);
+                    break;
+                }
+            }
+        }
+        return sortedMap;
+    }*/
     public SBoardstateC(SBoardstateC pbs) {
         super();
         this.board = copyTiles(pbs);
@@ -123,6 +153,9 @@ public class SBoardstateC extends BoardState {
         this.rand = new Random();
         this.nuggetpos=pbs.nuggetpos;
 
+
+        this.compo= MyTools.updateDeck(SaboteurCard.getDeckcomposition(),pbs.getHiddenBoard());
+        this.Deck = MyTools.getDeckfromcompo(compo);
 
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
         this.lastplayedpos[0]=pbs.lastplayedpos[1];
@@ -561,8 +594,21 @@ public class SBoardstateC extends BoardState {
         ArrayList<SaboteurCard> hand;
         boolean isBlocked;
 
-        hand = this.player2Cards;
-        isBlocked= player2nbMalus > 0;
+        if(turnPlayer==1) {
+            hand = this.player2Cards;
+            isBlocked = player2nbMalus > 0;
+        }
+        else{
+            hand = this.player1Cards;
+            isBlocked = player1nbMalus > 0;
+        }
+
+        hand=MyTools.getTopDeck(compo);
+        System.out.println("Opponents Hand:");
+        for (int i = 0; i < hand.size(); i++) {
+            System.out.println(hand.get(i).getName());
+        }
+
 
         ArrayList<SaboteurMove> legalMoves = new ArrayList<>();
 
@@ -686,6 +732,8 @@ public class SBoardstateC extends BoardState {
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         this.intBoard = pbs.getHiddenIntBoard();
         this.turnPlayer= pbs.getTurnPlayer();
+        this.compo= MyTools.updateDeck(SaboteurCard.getDeckcomposition(),pbs.getHiddenBoard());
+        this.Deck = MyTools.getDeckfromcompo(compo);
 
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
         for (int i = 0; i < BOARD_SIZE; i++) {
