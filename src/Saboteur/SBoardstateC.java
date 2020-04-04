@@ -34,6 +34,7 @@ public class SBoardstateC extends BoardState {
     public int player2nbMalus;
     public boolean[] player1hiddenRevealed = {false,false,false};
     public boolean[] player2hiddenRevealed = {false,false,false};
+    public int nuggetpos = -1;
 
     public ArrayList<SaboteurCard> Deck; //deck form which player pick
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
@@ -119,6 +120,8 @@ public class SBoardstateC extends BoardState {
         this.compo=pbs.compo;
         this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
+        this.nuggetpos=pbs.nuggetpos;
+
 
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
         this.lastplayedpos[0]=pbs.lastplayedpos[1];
@@ -148,6 +151,7 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.hiddenCards.length;i++){
             this.hiddenCards[i] = new SaboteurTile(pbs.hiddenCards[i].getName().split(":")[1]); //Note: we might encounter a problem here, and should define card as cloneable
         }
+
         this.player1nbMalus = pbs.player1nbMalus;
         this.player2nbMalus = pbs.player2nbMalus;
         this.winner = pbs.winner;
@@ -556,7 +560,6 @@ public class SBoardstateC extends BoardState {
         ArrayList<SaboteurCard> hand;
         boolean isBlocked;
 
-
         hand = this.player2Cards;
         isBlocked= player2nbMalus > 0;
 
@@ -671,12 +674,17 @@ public class SBoardstateC extends BoardState {
         }
         return legal;
     }
+    public boolean[] returnRevealed(){
+        if(getTurnPlayer()==1){
+            return(this.player1hiddenRevealed);
+        }
+        return(this.player2hiddenRevealed);
+    }
     public SBoardstateC(SaboteurBoardState pbs,  ArrayList<SaboteurCard> Deck) {
         super();
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         this.intBoard = pbs.getHiddenIntBoard();
         this.turnPlayer= pbs.getTurnPlayer();
-
 
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -699,21 +707,32 @@ public class SBoardstateC extends BoardState {
         if(turnPlayer==1) {
             pbsplayer1Cards = pbs.getCurrentPlayerCards();
             int i = 0;
+
             for (int[] pos : hiddenPos) {
-                if (board[pos[0]][pos[1]].getIdx().equals('8')) {
+                System.out.println("Revealed: "+ board[pos[0]][pos[1]].getIdx());
+                if (!board[pos[0]][pos[1]].getIdx().equals("8")) {
                     pbsplayer1hiddenRevealed[i] = true;
+                    if(board[pos[0]][pos[1]].getIdx().equals("nugget")){
+                        nuggetpos=i;
+                    }
                     //pbshiddenRevealed[i]=true;
+                    System.out.println("Revealed: "+ board[pos[0]][pos[1]].getIdx());
                 }
                 i+=1;
             }
+
             pbsplayer2Cards = Deck;
         }else{
             pbsplayer2Cards = pbs.getCurrentPlayerCards();
             int i = 0;
             for (int[] pos : hiddenPos) {
-                if (board[pos[0]][pos[1]].getIdx().equals('8')) {
+                if (!board[pos[0]][pos[1]].getIdx().equals("8")) {
                     pbsplayer2hiddenRevealed[i] = true;
                     //pbshiddenRevealed[i]=true;
+                    System.out.println("Revealed: "+board[pos[0]][pos[1]].getIdx());
+                }
+                if(board[pos[0]][pos[1]].getIdx().equals("nugget")){
+                    nuggetpos=i;
                 }
                 i+=1;
             }
@@ -779,6 +798,7 @@ public class SBoardstateC extends BoardState {
         // Concerning the map observation, the player then has to check by himself the result of its observation.
         //Note: this method is ran in a BoardState ran by the server as well as in a BoardState ran by the player.
         /*
+
         if (!isLegal(m)) {
 //            System.out.println("Found an invalid Move for player " + this.turnPlayer+" of board"+ this.hashCode());
 //            ArrayList<SaboteurCard> hand = this.turnPlayer==1? this.player1Cards : this.player2Cards;

@@ -51,6 +51,7 @@ public class StudentPlayer extends SaboteurPlayer {
         clone = MyTools.checkHiddenupdate(clone);
         SaboteurMove myMove = MyTools.findBestMove(0, clone,boardState.getAllLegalMoves());
         System.out.println("Turn:"+boardState.getTurnPlayer());
+
         for(int i =0 ; i <boardState.getCurrentPlayerCards().size();i++){
             System.out.println("HAND:"+boardState.getCurrentPlayerCards().get(i).getName());
         }
