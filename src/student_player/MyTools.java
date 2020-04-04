@@ -739,6 +739,7 @@ public class MyTools {
             for (int i =0 ; i < possible_actions2.size();i++){
                 System.out.println("Actual:" + possible_actions2.get(i).toPrettyString() + " OURS:" + possible_actions.get(i).toPrettyString());
             }
+            possible_actions=possible_actions2;
         }
 
 
