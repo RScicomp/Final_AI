@@ -239,7 +239,6 @@ public class MyTools {
         double result =0;
         if(board.lastplayed.getCardPlayed().getName().equals("Destroy")){
             result+=-20;
-
         }
         return result;
     }
@@ -275,7 +274,9 @@ public class MyTools {
             System.out.println("MEAN: " + mean);
             result= result/mean;
         }
+        if(board.lastplayed.getCardPlayed().getName().equals("Malus")){
 
+        }
         // supposedly multiplies the number of hidden tiles connected to the bonus
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
@@ -319,13 +320,12 @@ public class MyTools {
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
             result -= 60;
         }
-
-
-
         //Destroy tiles that disconnect
 
         return(result);
     }
+
+
     public static boolean checkConnected(SaboteurCard card){
         if(tileCard(card)) {
             int[][] path= ((SaboteurTile)card).getPath();
@@ -339,6 +339,7 @@ public class MyTools {
         return false;
 
     }
+
     public static double valueConnected(SBoardstateC board){
         SaboteurCard card=board.lastplayed.getCardPlayed();
         if(tileCard(card)){
@@ -445,7 +446,6 @@ public class MyTools {
                 }
             }
         }
-
         return boardState;
     }
     public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles){

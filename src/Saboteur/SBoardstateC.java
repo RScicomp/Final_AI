@@ -40,6 +40,7 @@ public class SBoardstateC extends BoardState {
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
     public SaboteurTile[] hiddenCards = new SaboteurTile[3];
     public boolean[] hiddenRevealed = {false,false,false}; //whether hidden at pos1 is revealed, hidden at pos2 is revealed, hidden at pos3 is revealed.
+    public boolean hasMalus=false;
 
 
     public int turnPlayer;
