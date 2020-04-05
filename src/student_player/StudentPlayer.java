@@ -26,6 +26,7 @@ public class StudentPlayer extends SaboteurPlayer {
      * associate you with your agent. The constructor should do nothing else.
      */
     public static boolean[] hiddenRevealedhist={false,false,false};
+    public static int[] maxpath;
 
     public StudentPlayer() {
         super("260729805");
@@ -81,11 +82,11 @@ public class StudentPlayer extends SaboteurPlayer {
             for (int i  =0; i < board.player1hiddenRevealed.length;i++){
                 if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
                     board.player1hiddenRevealed[i]=true;
-                    board.hiddenRevealed[i]=true;
+                    //board.hiddenRevealed[i]=true;
                 }
                 if(board.player1hiddenRevealed[i]==true){
                     hiddenRevealedhist[i]=true;
-                    board.hiddenRevealed[i]=true;
+                    //board.hiddenRevealed[i]=true;
                 }
             }
         }
@@ -93,15 +94,16 @@ public class StudentPlayer extends SaboteurPlayer {
             for (int i  =0; i < board.player2hiddenRevealed.length;i++){
                 if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
                     board.player2hiddenRevealed[i]=true;
-                    board.hiddenRevealed[i]=true;
+                    //board.hiddenRevealed[i]=true;
                 }
                 if(board.player1hiddenRevealed[i]==true){
                     hiddenRevealedhist[i]=true;
-                    board.hiddenRevealed[i]=true;
+                    //board.hiddenRevealed[i]=true;
                 }
             }
         }
         return board;
 
     }
+
 }

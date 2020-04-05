@@ -239,6 +239,8 @@ public class MyTools {
         // supposedly multiplies the number of hidden tiles connected to the bonus
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
+        result += MyTools.destroyStrategy(board);
+        result += MyTools.valueConnected(board);
         result += MyTools.countHiddenStrategy(board)*200;
         result += saveCardsStrategy(board) * 100;
         //replaced with countHiddenStrategy()
@@ -286,12 +288,78 @@ public class MyTools {
 
         return(result);
     }
+    public static double dropStrategy(SBoardstateC board){
+        SaboteurMove played = board.lastplayed;
+        SBoardstateC clone = new SBoardstateC(board);
+        int[] pos = played.getPosPlayed();
+        ArrayList<SaboteurCard> hand;
+        ArrayList<SaboteurCard> opponentshand = board.getCurrentPlayerCards();
+        if(board.turnPlayer == 1) {
+            hand = board.player2Cards;
+        }else{
+            hand = board.player1Cards;
+        }
+        if(played.getCardPlayed().getName().equals("Drop")){
+            SaboteurCard dropped = board.dropped;
+            if(checkConnected(dropped)){
+
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+
+    public static double malusStrategy(SBoardstateC board){
+        return 0;
+    }
+    public static double considerOpponentStrategy(SBoardstateC board){
+        SaboteurMove played = board.lastplayed;
+        SBoardstateC clone = new SBoardstateC(board);
+        int[] pos = played.getPosPlayed();
+        ArrayList<SaboteurCard> hand;
+        ArrayList<SaboteurCard> opponentshand = board.getCurrentPlayerCards();
+        if(board.turnPlayer == 1) {
+            hand = board.player2Cards;
+        }else{
+            hand = board.player1Cards;
+        }
+
+        return 0;
+    }
+    public static double destroyStrategy(SBoardstateC board){
+        SaboteurMove played = board.lastplayed;
+        SBoardstateC clone = new SBoardstateC(board);
+        int[] pos = played.getPosPlayed();
+        ArrayList<SaboteurCard> hand;
+        if(board.turnPlayer == 1) {
+            hand = board.player2Cards;
+        }else{
+            hand = board.player1Cards;
+        }
+        double result=0;
+
+        if(played.getCardPlayed().getName().equals("Destroy")){
+            SaboteurCard destroyed=board.destroyed;
+            if(checkConnected(destroyed)){
+                result=-5;
+            }else{
+                result+=10;
+                System.out.println("GOOD Destroy");
+            }
+        }
+
+        return result;
+
+    }
+
     public static boolean checkConnected(SaboteurCard card){
         if(tileCard(card)) {
             int[][] path= ((SaboteurTile)card).getPath();
             if(path[1][1]==1) {
+                //horizontal line,
                 if (path[0][1] == 1 && path[2][1] == 1 || path[0][1] == 1 && path[1][0] == 1 ||
-                        path[0][1] == 1 && path[1][2] == 1 || path[1][0] == 1 && path[1][2] == 1) {
+                        path[0][1] == 1 && path[1][1] == 1 || path[1][0] == 1 && path[1][1] == 1) {
                     return true;
                 }
             }
@@ -335,6 +403,18 @@ public class MyTools {
         pos[0]=pos[0]*3;
         pos[1]=pos[1]*3;
         return pos;
+    }
+    public static double maximumPathStrategy(SBoardstateC board){
+        //if a max path wouldn't exist without this move, give it a bonus
+        int[] maxpath = board.maxpath;
+        double previousmax = euclideanDistance(origin,maxpath);
+        board.longestpath();
+        if(board.maxpath != maxpath) {
+            double currentmax = euclideanDistance(origin, board.maxpath);
+
+        }
+
+        return 0;
     }
     public static double valueBackwards(SBoardstateC board){
         double result = 0;
@@ -739,6 +819,65 @@ public class MyTools {
             System.out.println("");
         }
     }
+    public static ArrayList<SaboteurCard> getTopDeck(Map<String,Integer> compo) {
+
+        Map<String, Integer> sortedMap = sortByValue(compo);
+        sortedMap = getTopCards(sortedMap,7);
+        return(getDeckfromcompo(sortedMap));
+    }
+    public static Map<String,Integer> getTopCards(Map<String, Integer> map,int nocards) {
+        Map<String,Integer> newmap = new HashMap<String,Integer>();
+        int count = 0;
+        System.out.println("MAP ENTRY SET: " +map.entrySet());
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if(count >= nocards){
+                break;
+            }
+
+            if (!entry.getKey().equals("map")&&!entry.getKey().equals("destroy")&&!entry.getKey().equals("bonus")) {
+                System.out.println("Key : " + entry.getKey()
+                        + " Value : " + entry.getValue());
+                newmap.put(entry.getKey(), entry.getValue());
+                count += 1;
+            }
+
+        }
+        return newmap;
+    }
+    private static Map<String, Integer> sortByValue(Map<String, Integer> unsortMap) {
+
+        // 1. Convert Map to List of Map
+        List<Map.Entry<String, Integer>> list =
+                new LinkedList<Map.Entry<String, Integer>>(unsortMap.entrySet());
+
+        // 2. Sort list with Collections.sort(), provide a custom Comparator
+        //    Try switch the o1 o2 position for a different order
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            public int compare(Map.Entry<String, Integer> o1,
+                               Map.Entry<String, Integer> o2) {
+                return (o1.getValue()).compareTo(o2.getValue());
+            }
+        });
+
+        // 3. Loop the sorted list and put it into a new insertion order Map LinkedHashMap
+        Map<String, Integer> sortedMap = new LinkedHashMap<String, Integer>();
+        Collections.reverse(list);
+        for (Map.Entry<String, Integer> entry : list) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+
+        /*
+        //classic iterator example
+        for (Iterator<Map.Entry<String, Integer>> it = list.iterator(); it.hasNext(); ) {
+            Map.Entry<String, Integer> entry = it.next();
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }*/
+
+
+        return sortedMap;
+    }
+
 
 
     static class Path {

@@ -1,6 +1,7 @@
 package Saboteur;
 
 import Saboteur.cardClasses.*;
+import student_player.MyTools;
 import boardgame.Board;
 import boardgame.BoardState;
 import boardgame.Move;
@@ -34,7 +35,7 @@ public class SBoardstateC extends BoardState {
     public int player2nbMalus;
     public boolean[] player1hiddenRevealed = {false,false,false};
     public boolean[] player2hiddenRevealed = {false,false,false};
-    public int nuggetpos = -1;
+    public int nuggetpos;
 
     public ArrayList<SaboteurCard> Deck; //deck form which player pick
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
@@ -47,6 +48,8 @@ public class SBoardstateC extends BoardState {
     public int winner;
     public Random rand;
     public SaboteurCard destroyed;
+    public SaboteurCard dropped;
+    public static int[] maxpath;
 
     public SBoardstateC() {
         super();
@@ -121,7 +124,7 @@ public class SBoardstateC extends BoardState {
         this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
         this.nuggetpos=pbs.nuggetpos;
-
+        //longestpath(pbs);
 
         this.lastplayedpos[0]=pbs.lastplayedpos[0];
         this.lastplayedpos[0]=pbs.lastplayedpos[1];
@@ -305,6 +308,71 @@ public class SBoardstateC extends BoardState {
         }
 
         return this.intBoard; }
+
+    public void longestpath(SaboteurBoardState board){
+        int[][] intboard= board.getHiddenIntBoard();
+        int maxpos[] = new int[]{16,16};
+        double maxscore =0;
+
+        for (int i = 20; i < intboard.length-2;i++){
+            for(int j = 0; j < intboard[j].length-2;j++){
+                int[] currentpos = new int[]{i,j};
+                int[] tilepos = new int[]{i/3,j/3};
+                if(MyTools.pathToMeplaced(intboard,MyTools.originint,currentpos)){
+                    double score=MyTools.euclideanDistance(MyTools.origin,tilepos);
+
+                    if(score>maxscore){
+                        maxpos=currentpos;
+                        maxscore=score;
+                    }
+                }
+            }
+        }
+        maxpath = new int[]{maxpos[0]/3,maxpos[0]/3};
+    }
+    public void longestpath(){
+        int[][] intboard= getHiddenIntBoard();
+        int maxpos[] = new int[]{5,5};
+        double maxscore =0;
+
+        for (int i = 20; i < intboard.length;i++){
+            for(int j = 0; j < intboard[j].length;j++){
+                int[] currentpos = new int[]{i,j};
+                int[] tilepos = new int[]{i/3,j/3};
+                if(MyTools.pathToMeplaced(intboard,MyTools.originint,currentpos)){
+                    double score=MyTools.euclideanDistance(MyTools.origin,tilepos);
+
+                    if(score>maxscore){
+                        maxpos=currentpos;
+                        maxscore=score;
+                    }
+                }
+            }
+        }
+        maxpath = maxpos;
+    }
+    public void longestpath(SBoardstateC board){
+        int[][] intboard= board.getHiddenIntBoard();
+        int maxpos[] = new int[]{5,5};
+        double maxscore =0;
+
+        for (int i = 20; i < intboard.length-2;i++){
+            for(int j = 0; j < intboard[j].length-2;j++){
+                int[] currentpos = new int[]{i,j};
+                int[] tilepos = new int[]{i/3,j/3};
+                if(MyTools.pathToMeplaced(intboard,MyTools.originint,currentpos)){
+                    double score=MyTools.euclideanDistance(MyTools.origin,tilepos);
+
+                    if(score>maxscore){
+                        maxpos=currentpos;
+                        maxscore=score;
+                    }
+                }
+            }
+        }
+        maxpath = maxpos;
+    }
+
     public int[][] getHiddenIntBoard() {
         //update the int board, and provide it to the player with the hidden objectives set at EMPTY.
         //Note that this function is available to the player.
@@ -560,8 +628,21 @@ public class SBoardstateC extends BoardState {
         ArrayList<SaboteurCard> hand;
         boolean isBlocked;
 
-        hand = this.player2Cards;
-        isBlocked= player2nbMalus > 0;
+        if(turnPlayer==1) {
+            hand = this.player2Cards;
+            isBlocked = player2nbMalus > 0;
+        }
+        else{
+            hand = this.player1Cards;
+            isBlocked = player1nbMalus > 0;
+        }
+
+        hand=MyTools.getTopDeck(compo);
+        System.out.println("Opponents Hand:");
+        for (int i = 0; i < hand.size(); i++) {
+            System.out.println(hand.get(i).getName());
+        }
+
 
         ArrayList<SaboteurMove> legalMoves = new ArrayList<>();
 
@@ -685,8 +766,13 @@ public class SBoardstateC extends BoardState {
         this.board = new SaboteurTile[BOARD_SIZE][BOARD_SIZE];
         this.intBoard = pbs.getHiddenIntBoard();
         this.turnPlayer= pbs.getTurnPlayer();
+        this.nuggetpos = -1;
+        //longestpath(pbs);
 
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
+
+
+
         for (int i = 0; i < BOARD_SIZE; i++) {
             System.arraycopy(pbsboard[i], 0, this.board[i], 0, BOARD_SIZE);
         }
@@ -821,6 +907,11 @@ public class SBoardstateC extends BoardState {
             System.out.println("You destroyed:"+ destroyed.getName());
 
         }
+        if(m.getCardPlayed().getName().equals("Drop")){
+            dropped = this.getCurrentPlayerCards().get(pos[0]);
+            System.out.println("You dropped:"+ dropped.getName());
+        }
+
         if(testCard instanceof SaboteurTile){
             this.board[pos[0]][pos[1]] = new SaboteurTile(((SaboteurTile) testCard).getIdx());
             if(turnPlayer==1){
