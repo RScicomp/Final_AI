@@ -239,8 +239,8 @@ public class MyTools {
         // supposedly multiplies the number of hidden tiles connected to the bonus
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
-        result += MyTools.destroyStrategy(board);
-        result+= MyTools.dropStrategy(board);
+        result += MyTools.destroyStrategy(board)+maximumPathStrategy(board)+bottomStrategy(board);
+        //result+= MyTools.dropStrategy(board);
         result += MyTools.valueConnected(board);
         result += MyTools.countHiddenStrategy(board)*200;
         result += saveCardsStrategy(board) * 100;
@@ -264,7 +264,7 @@ public class MyTools {
         // give bonus for finding a path from origin
         if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
             System.out.println("Path exists");
-            result+=10.0;
+            result+=5.0;
         }
 
 
@@ -274,7 +274,7 @@ public class MyTools {
         // maybe:
         // play slightly different strategies based on the which tiles are revealed?
 
-        if(     euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
+        if(euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
                 euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
                 euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
@@ -282,12 +282,30 @@ public class MyTools {
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
             result -= 60;
         }
+        if(board.lastplayed.getPosPlayed()[0]==10){
+            double dis = euclideanDistance(board.lastplayedpos, hiddenPos[1]);
+            System.out.println("HEY");
+
+        }
 
 
 
         //Destroy tiles that disconnect
 
         return(result);
+    }
+    //Value cards being played near the bottom.
+    public static double bottomStrategy(SBoardstateC board){
+        double result =0;
+        if((board.lastplayedpos[0] < 5)){
+            result-=10;
+            if(!checkConnected(board.lastplayed.getCardPlayed())){
+                result+=10;
+            }
+            return result;
+        }
+        return 0;
+
     }
     public static double dropStrategy(SBoardstateC board){
         SaboteurMove played = board.lastplayed;
@@ -302,8 +320,8 @@ public class MyTools {
         }
         if(played.getCardPlayed().getName().equals("Drop")){
             SaboteurCard dropped = board.dropped;
-            if(checkConnected(dropped)){
-
+            //System.out.println("Dropped: "+dropped.getName());
+            if(!checkConnected(dropped)){
                 return 1;
             }
         }
@@ -311,9 +329,6 @@ public class MyTools {
     }
 
 
-    public static double malusStrategy(SBoardstateC board){
-        return 0;
-    }
     public static double considerOpponentStrategy(SBoardstateC board){
         SaboteurMove played = board.lastplayed;
         SBoardstateC clone = new SBoardstateC(board);
@@ -382,7 +397,14 @@ public class MyTools {
         return 0;
     }
     public static boolean tileCard(SaboteurCard card){
-        return (card.getName().contains("Tile"));
+        if(card instanceof SaboteurTile){
+            return true;
+        }
+        if(card.getName() != null) {
+            return (card.getName().contains("Tile"));
+        }
+
+        return false;
     }
     public static double valueDownwardsStrategy(SBoardstateC board){
         double result=0;
@@ -405,12 +427,16 @@ public class MyTools {
         pos[1]=pos[1]*3;
         return pos;
     }
+    //Value cards that increase the max path.
     public static double maximumPathStrategy(SBoardstateC board){
         //if a max path wouldn't exist without this move, give it a bonus
         int[] maxpath = board.maxpath;
+
         double previousmax = euclideanDistance(origin,maxpath);
         board.longestpath();
-        if(board.maxpath != maxpath) {
+        int[] newmaxpath = board.maxpath;
+
+        if(newmaxpath!= maxpath) {
             double currentmax = euclideanDistance(origin, board.maxpath);
             if(currentmax>previousmax){
                 return 5;
@@ -735,6 +761,7 @@ public class MyTools {
         SaboteurMove worstMove = boardState.getRandomMove();
 
         boolean sabotage = false;
+        boolean failedtoplaymap=false;
 
         if(activeSabotager(boardState)){
             System.out.println("Sabotager!");
@@ -775,6 +802,7 @@ public class MyTools {
                 // If the value of the current move is
                 // more than the best value, then update
                 // best
+
                 if (moveVal > bestVal) {
                     bestMove = played;
                     bestVal = moveVal;

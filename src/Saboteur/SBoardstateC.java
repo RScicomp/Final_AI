@@ -25,7 +25,7 @@ public class SBoardstateC extends BoardState {
 
     public SaboteurTile[][] board;
     public int[][] intBoard;
-    public static int[] lastplayedpos = {5,5};
+    public static int[] lastplayedpos;
     public static SaboteurMove lastplayed;
     //player variables:
     // Note: Player 1 is active when turnplayer is 1;
@@ -126,8 +126,7 @@ public class SBoardstateC extends BoardState {
         this.nuggetpos=pbs.nuggetpos;
         longestpath(pbs);
 
-        this.lastplayedpos[0]=pbs.lastplayedpos[0];
-        this.lastplayedpos[0]=pbs.lastplayedpos[1];
+        this.lastplayedpos=pbs.lastplayedpos;
         this.lastplayed = pbs.lastplayed;
 
         //we are not looking for shallow copy (where element are not copied) but deep copy, so that the user can't destroy the board that is sent to him...
@@ -328,32 +327,11 @@ public class SBoardstateC extends BoardState {
                 }
             }
         }
-        maxpath = new int[]{maxpos[0]/3,maxpos[0]/3};
+        maxpath = new int[]{(maxpos[0]/3),(maxpos[0]/3)};
     }
     public void longestpath(){
         int[][] intboard= getHiddenIntBoard();
-        int maxpos[] = new int[]{5,5};
-        double maxscore =0;
-
-        for (int i = 20; i < intboard.length;i++){
-            for(int j = 0; j < intboard[j].length;j++){
-                int[] currentpos = new int[]{i,j};
-                int[] tilepos = new int[]{i/3,j/3};
-                if(MyTools.pathToMeplaced(intboard,MyTools.originint,currentpos)){
-                    double score=MyTools.euclideanDistance(MyTools.origin,tilepos);
-
-                    if(score>maxscore){
-                        maxpos=currentpos;
-                        maxscore=score;
-                    }
-                }
-            }
-        }
-        maxpath = maxpos;
-    }
-    public void longestpath(SBoardstateC board){
-        int[][] intboard= board.getHiddenIntBoard();
-        int maxpos[] = new int[]{5,5};
+        int maxpos[] = new int[]{16,16};
         double maxscore =0;
 
         for (int i = 20; i < intboard.length-2;i++){
@@ -370,7 +348,28 @@ public class SBoardstateC extends BoardState {
                 }
             }
         }
-        maxpath = maxpos;
+        maxpath = new int[]{(maxpos[0]/3),(maxpos[0]/3)};
+    }
+    public void longestpath(SBoardstateC board){
+        int[][] intboard= board.getHiddenIntBoard();
+        int maxpos[] = new int[]{16,16};
+        double maxscore =0;
+
+        for (int i = 20; i < intboard.length-2;i++){
+            for(int j = 0; j < intboard[j].length-2;j++){
+                int[] currentpos = new int[]{i,j};
+                int[] tilepos = new int[]{i/3,j/3};
+                if(MyTools.pathToMeplaced(intboard,MyTools.originint,currentpos)){
+                    double score=MyTools.euclideanDistance(MyTools.origin,tilepos);
+
+                    if(score>maxscore){
+                        maxpos=currentpos;
+                        maxscore=score;
+                    }
+                }
+            }
+        }
+        maxpath = new int[]{(maxpos[0]/3),(maxpos[0]/3)};
     }
 
     public int[][] getHiddenIntBoard() {
