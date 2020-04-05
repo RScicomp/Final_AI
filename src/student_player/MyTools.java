@@ -240,6 +240,7 @@ public class MyTools {
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
         result += MyTools.destroyStrategy(board);
+        result+= MyTools.dropStrategy(board);
         result += MyTools.valueConnected(board);
         result += MyTools.countHiddenStrategy(board)*200;
         result += saveCardsStrategy(board) * 100;
@@ -411,7 +412,9 @@ public class MyTools {
         board.longestpath();
         if(board.maxpath != maxpath) {
             double currentmax = euclideanDistance(origin, board.maxpath);
-
+            if(currentmax>previousmax){
+                return 5;
+            }
         }
 
         return 0;
