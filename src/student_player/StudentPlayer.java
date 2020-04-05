@@ -25,6 +25,7 @@ public class StudentPlayer extends SaboteurPlayer {
      * important, because this is what the code that runs the competition uses to
      * associate you with your agent. The constructor should do nothing else.
      */
+    public static boolean[] hiddenRevealedhist={false,false,false};
 
     public StudentPlayer() {
         super("260729805");
@@ -47,8 +48,19 @@ public class StudentPlayer extends SaboteurPlayer {
 
 
         SBoardstateC clone = new SBoardstateC(boardState,deck);
+        //Ensure up to date revealed cards.
+        for(int i = 0; i < 3;i++) {
+            if (MyTools.pathToMeplaced(boardState.getHiddenIntBoard(), MyTools.originint, MyTools.hiddenPosintmid[i])) {
+                hiddenRevealedhist[i] = true;
+            }
+        }
+
+
         clone.compo=compo;
         clone = MyTools.checkHiddenupdate(clone);
+        clone= updateRevealHistory(clone);
+
+
         SaboteurMove myMove = MyTools.findBestMove(0, clone,boardState.getAllLegalMoves());
         System.out.println("Turn:"+boardState.getTurnPlayer());
 
@@ -63,5 +75,33 @@ public class StudentPlayer extends SaboteurPlayer {
 
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;
+    }
+    public static SBoardstateC updateRevealHistory(SBoardstateC board){
+        if(board.turnPlayer == 1) {
+            for (int i  =0; i < board.player1hiddenRevealed.length;i++){
+                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
+                    board.player1hiddenRevealed[i]=true;
+                    board.hiddenRevealed[i]=true;
+                }
+                if(board.player1hiddenRevealed[i]==true){
+                    hiddenRevealedhist[i]=true;
+                    board.hiddenRevealed[i]=true;
+                }
+            }
+        }
+        else{
+            for (int i  =0; i < board.player2hiddenRevealed.length;i++){
+                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
+                    board.player2hiddenRevealed[i]=true;
+                    board.hiddenRevealed[i]=true;
+                }
+                if(board.player1hiddenRevealed[i]==true){
+                    hiddenRevealedhist[i]=true;
+                    board.hiddenRevealed[i]=true;
+                }
+            }
+        }
+        return board;
+
     }
 }

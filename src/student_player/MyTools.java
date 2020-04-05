@@ -19,9 +19,37 @@ public class MyTools {
     public static final int[] originint = new int[] {(originPos*3)+1 ,(originPos*3)+1};
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
     public static final int[][] hiddenPosint = {{3*(originPos+7),3*(originPos-2)},{3*(originPos+7),3*(originPos)},{3*(originPos+7),3*(originPos+2)}};
+    public static final int[][] hiddenPosintmid = {{3*(originPos+7)+1,3*(originPos-2)+1},{3*(originPos+7)+1,3*(originPos)+1},{3*(originPos+7)+1,3*(originPos+2)+1}};
+
+    public static boolean[] hiddenRevealedhist={false,false,false};
     public static boolean[] hiddenRevealed = {false,false,false};
     public static int nuggetpos=-1;
 
+    //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
+    public static SBoardstateC updateRevealHistory(SBoardstateC board){
+        if(board.turnPlayer == 1) {
+            for (int i  =0; i < board.player1hiddenRevealed.length;i++){
+                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
+                    board.player1hiddenRevealed[i]=true;
+                }
+                if(board.player1hiddenRevealed[i]==true){
+                    hiddenRevealedhist[i]=true;
+                }
+            }
+        }
+        else{
+            for (int i  =0; i < board.player2hiddenRevealed.length;i++){
+                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
+                    board.player2hiddenRevealed[i]=true;
+                }
+                if(board.player1hiddenRevealed[i]==true){
+                    hiddenRevealedhist[i]=true;
+                }
+            }
+        }
+        return board;
+
+    }
     public static ArrayList<SaboteurCard> getDeckfromcompo(Map<String,Integer> compo){
         //returns an unshuffled deck
         //Map<String,Integer> compo = SaboteurCard.getDeckcomposition();
@@ -142,74 +170,6 @@ public class MyTools {
     }
 
 
-    public static int evaluate(SBoardstateC board){
-        int score= 0;
-
-        int[][] intboard = cloneArray(board.getHiddenIntBoard());
-        System.out.println("ORGIN:" + intboard[originint[0]][originint[1]]);
-        //first evaluate considering the nugget if exists
-        //Next evaluate by deduction if there is 2 revealed,
-        //Next evaluate your hand, the deck and the board. If favorable make aggressive moves. Else sabotage.
-        //Next make sure the move you aren't playing will make the other win.
-
-
-        if(nuggetpos != -1){
-            int[] goalpos = hiddenPosint[nuggetpos];
-
-            //Check if this is a winning move.
-            if(pathToMe(intboard,origin,goalpos)){
-                return 100;
-            }else{
-                double maxscore = 1000;
-                for (int i = 12; i < (intboard.length-2);i++) {
-                    for (int j = 0; j < (intboard[i].length - 2); j++) {
-                        //System.out.println("COORDS:" + i +", " + j);
-                        int[] destination = new int[]{i, j};
-                        if (intboard[i][j] == 1) {
-                            //print2d2(intboard);
-                            if (pathToMe(intboard, originint, destination)) {
-                                System.out.println("There's a path here");
-                                destination[0] = destination[0]/3;
-                                destination[1] = destination[1]/3;
-                                maxscore = Math.min(maxscore, euclideanDistance(destination, goalpos));
-                                //System.out.println("Distance to nugget "+euclideanDistance(destination, goalpos));
-                            }
-                        }
-                    }
-                }
-                return ((int)maxscore);
-            }
-        }else{
-            double maxscore = 1000;
-            for (int i = 14; i < (intboard.length-2);i++){
-                for(int j = 0; j < (intboard[i].length-2);j++){
-                    //System.out.println("COORDS:" + i +", " + j);
-                    int[] destination = new int[]{i,j};
-                    //If a walkable path
-                    if(intboard[i][j]==1) {
-                        //If there is a path to origin from destination
-                        if (pathToMeplaced(intboard, originint, destination)) {
-
-                            //check for connection points
-                            double[] distances = new double[]{0, 0, 0};
-                            destination[0] = destination[0]/3;
-                            destination[1] = destination[1]/3;
-                            for (int k = 0; k < 3; k++) {
-                                distances[k] = euclideanDistance(destination, hiddenPos[k]);
-                                //System.out.println("Distance to goal " + k + ": " + (10/ distances[k]));
-                            }
-                            maxscore = Math.min(maxscore, mean(distances));
-                        }
-                    }
-                }
-            }
-            if(maxscore >0) {
-                System.out.println("State of the Board Score:  " +  (10/maxscore));
-            }
-            return((int)(10/maxscore));
-            //Drop, Map play first, Destroy -> Destroy.
-        }
-    }
 
 
     //count the number of hiddens revealed by a move
@@ -660,6 +620,7 @@ public class MyTools {
     }
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions2 )
     {
+        boardState=updateRevealHistory(boardState);
         double bestVal = -1000;
         double worstVal = 1000;
 
@@ -670,7 +631,7 @@ public class MyTools {
         if(boardState.nuggetpos!=-1){
             System.out.println("FOUND");
         }
-        System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.hiddenRevealed[0] + boardState.hiddenRevealed[1] + boardState.hiddenRevealed[1]);
+        System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.player1hiddenRevealed[0] + boardState.player1hiddenRevealed[1] + boardState.player1hiddenRevealed[1]);
 
         ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
         if(possible_actions.size()==possible_actions2.size()){
@@ -678,9 +639,10 @@ public class MyTools {
         }else{
             System.out.println("Uh oh");
             System.out.println("MOVES FOR REAL:");
+            /*
             for (int i =0 ; i < possible_actions2.size();i++){
                 System.out.println("Actual:" + possible_actions2.get(i).toPrettyString() + " OURS:" + possible_actions.get(i).toPrettyString());
-            }
+            }*/
             possible_actions=possible_actions2;
         }
 
