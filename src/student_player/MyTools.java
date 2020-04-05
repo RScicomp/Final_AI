@@ -208,7 +208,7 @@ public class MyTools {
         double result = 20.0;
 
         if(board.nuggetpos!=-1){
-            System.out.println("We know where the nugget is");
+            System.out.println("We know where the nugget is: "+board.nuggetpos);
             result= result/euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos]);
 
             //check winning condition
@@ -660,51 +660,52 @@ public class MyTools {
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
-            double moveVal=0;
+            double moveVal = 0;
             //Play bonus card every time malused
             SaboteurMove played = possible_actions.get(i);
             int[] pos = played.getPosPlayed();
-            if(isMalused(boardState) && played.getCardPlayed().getName().equals("Bonus")){
+            if (isMalused(boardState) && played.getCardPlayed().getName().equals("Bonus")) {
                 return played;
             }
             //Get it to always play map card if unknown
-            if(played.getCardPlayed().getName().equals("Map")){
-                boolean[] revealed=boardState.returnRevealed();
-                if(revealed[0]!=true && pos[1] == 3||
-                revealed[1]!=true && pos[1]==5 || revealed[2]!=true && pos[1]==7){
+            if (played.getCardPlayed().getName().equals("Map")) {
+                boolean[] revealed = boardState.returnRevealed();
+                if (revealed[0] != true && pos[1] == 3 ||
+                        revealed[1] != true && pos[1] == 5 || revealed[2] != true && pos[1] == 7) {
                     System.out.println("Never Played this card before");
-                    if(boardState.nuggetpos==-1){
-                        return(played);
+                    if (boardState.nuggetpos == -1) {
+                        return (played);
                     }
                     System.out.println("Not playing since we know where it is");
                 }
-            }
-            if(sabotage==true){
-                if(isSabotagingMove(played)){
-                    moveVal+=5;
-                    System.out.println("Sabotaging move");
+            } else {
+                if (sabotage == true) {
+                    if (isSabotagingMove(played)) {
+                        moveVal += 5;
+                        System.out.println("Sabotaging move");
+                    }
                 }
-            }
-            SBoardstateC newboard = makeMove(played, boardState, false);
-            //if (boardState.isLegal(played)) {
-            moveVal+= evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
-            System.out.println("MOVE VALUE: " +played.toPrettyString()+" " +moveVal);
-            // If the value of the current move is
-            // more than the best value, then update
-            // best
-            if (moveVal > bestVal) {
-                bestMove = played;
-                bestVal = moveVal;
-                pboard = newboard;
-            }
-            if (moveVal < worstVal) {
-                worstMove = played;
-                worstVal = moveVal;
-                pboard = newboard;
+                SBoardstateC newboard = makeMove(played, boardState, false);
+                //if (boardState.isLegal(played)) {
+                moveVal += evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
+                System.out.println("MOVE VALUE: " + played.toPrettyString() + " " + moveVal);
+                // If the value of the current move is
+                // more than the best value, then update
+                // best
+                if (moveVal > bestVal) {
+                    bestMove = played;
+                    bestVal = moveVal;
+                    pboard = newboard;
+                }
+                if (moveVal < worstVal) {
+                    worstMove = played;
+                    worstVal = moveVal;
+                    pboard = newboard;
                 }
 
-            //}
+                //}
 
+            }
         }
         System.out.println("Playing simulation from first move: " +bestMove.toPrettyString());
         System.out.println("The resulting evaluation: " + evaluate2(pboard));
