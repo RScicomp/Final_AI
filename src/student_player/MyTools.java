@@ -23,7 +23,7 @@ public class MyTools {
 
     public static boolean[] hiddenRevealedhist={false,false,false};
     public static boolean[] hiddenRevealed = {false,false,false};
-    public static int nuggetpos=-1;
+    //public static int nuggetpos=-1;
 
     //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
     public static SBoardstateC updateRevealHistory(SBoardstateC board){
@@ -207,13 +207,13 @@ public class MyTools {
         int[][] intboard= board.intBoard;
         double result = 20.0;
 
-        if(nuggetpos!=-1){
+        if(board.nuggetpos!=-1){
             System.out.println("We know where the nugget is");
-            result= result/euclideanDistance(board.lastplayedpos,hiddenPos[nuggetpos]);
+            result= result/euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos]);
 
             //check winning condition
             if (pathToMeplaced(board.intBoard,originint,
-                    new int[]{(hiddenPos[nuggetpos][0] * 3 + 1), (hiddenPos[nuggetpos][1] * 3 + 1)})){
+                    new int[]{(hiddenPos[board.nuggetpos][0] * 3 + 1), (hiddenPos[board.nuggetpos][1] * 3 + 1)})){
                 result += 1000;
             }
 
@@ -338,10 +338,10 @@ public class MyTools {
     }
     public static double valueBackwards(SBoardstateC board){
         double result = 0;
-        if(nuggetpos != -1){
+        if(board.nuggetpos != -1){
             SaboteurCard cardPlayed = board.lastplayed.getCardPlayed();
             if(cardPlayed.getName().contains("Tile")){
-                if(pathToMeplaced(board.getHiddenIntBoard(),board.lastplayedpos,hiddenPosint[nuggetpos])){
+                if(pathToMeplaced(board.getHiddenIntBoard(),board.lastplayedpos,hiddenPosint[board.nuggetpos])){
                     result+= 5;
                     System.out.println("HEY This card connects the dots");
                 }
@@ -393,7 +393,7 @@ public class MyTools {
             }
             if (nonhiddencount == 2) {
                 System.out.println("Great. We know where it is at turn: "+boardState.getTurnNumber());
-                nuggetpos = falseindex;
+                boardState.nuggetpos = falseindex;
                 boardState.nuggetpos=falseindex;
                 if(boardState.getTurnPlayer()==1) {
                     boardState.player1hiddenRevealed[falseindex] = true;
