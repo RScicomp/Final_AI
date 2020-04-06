@@ -25,6 +25,7 @@ public class StudentPlayer extends SaboteurPlayer {
      * important, because this is what the code that runs the competition uses to
      * associate you with your agent. The constructor should do nothing else.
      */
+    public static SBoardstateC oldboard;
     public static boolean[] hiddenRevealedhist={false,false,false};
     public static int[] maxpath;
 
@@ -73,6 +74,7 @@ public class StudentPlayer extends SaboteurPlayer {
             System.out.println("Illegal move!");
             myMove = boardState.getRandomMove();
         }
+        oldboard = clone;
 
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;

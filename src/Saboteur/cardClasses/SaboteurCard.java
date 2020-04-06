@@ -66,6 +66,34 @@ abstract public class SaboteurCard {
         deck.add(new SaboteurMap());
         deck.add(new SaboteurMap());
 
+        //ME
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+        deck.add(new SaboteurDestroy());
+
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+        deck.add(new SaboteurTile("8"));
+
+
         return deck;
     }
     public static SaboteurCard copyACard(String name){

@@ -124,7 +124,7 @@ public class SBoardstateC extends BoardState {
         this.intBoard= cloneArray(pbs.getHiddenIntBoard());
         this.rand = new Random();
         this.nuggetpos=pbs.nuggetpos;
-        longestpath(pbs);
+        //longestpath(pbs);
 
         this.lastplayedpos=pbs.lastplayedpos;
         this.lastplayed = pbs.lastplayed;
@@ -766,7 +766,7 @@ public class SBoardstateC extends BoardState {
         this.intBoard = pbs.getHiddenIntBoard();
         this.turnPlayer= pbs.getTurnPlayer();
         this.nuggetpos = -1;
-        longestpath(pbs);
+        //longestpath(pbs);
 
         SaboteurTile[][] pbsboard = pbs.getHiddenBoard();
 

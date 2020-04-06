@@ -205,6 +205,9 @@ public class MyTools {
     }
     public static double evaluate2(SBoardstateC board){
         int[][] intboard= board.intBoard;
+        if(board.lastplayed.getCardPlayed().equals("Drop")){
+            return dropStrategy(board);
+        }
         double result = 20.0;
 
         if(board.nuggetpos!=-1){
@@ -239,11 +242,18 @@ public class MyTools {
         // supposedly multiplies the number of hidden tiles connected to the bonus
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
-        result += MyTools.destroyStrategy(board)+maximumPathStrategy(board)+bottomStrategy(board);
-        //result+= MyTools.dropStrategy(board);
+
+        result += MyTools.destroyStrategy(board);//+maximumPathStrategy(board);
+
+        result += MyTools.dropStrategy(board);
+
         result += MyTools.valueConnected(board);
+
         result += MyTools.countHiddenStrategy(board)*200;
-        result += saveCardsStrategy(board) * 100;
+
+        result += saveCardsStrategy(board);
+
+        result += helpWinStrategy(board);
         //replaced with countHiddenStrategy()
         //Check if winning move or connects to hidden
 /*
@@ -282,13 +292,11 @@ public class MyTools {
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
             result -= 60;
         }
-        if(board.lastplayed.getPosPlayed()[0]==10){
-            double dis = euclideanDistance(board.lastplayedpos, hiddenPos[1]);
-            System.out.println("HEY");
 
+
+        if(result< 0){
+            System.out.println("WHAT");
         }
-
-
 
         //Destroy tiles that disconnect
 
@@ -320,10 +328,12 @@ public class MyTools {
         }
         if(played.getCardPlayed().getName().equals("Drop")){
             SaboteurCard dropped = board.dropped;
-            //System.out.println("Dropped: "+dropped.getName());
-            if(!checkConnected(dropped)){
-                return 1;
+            if (dropped instanceof SaboteurTile) {
+                if (!checkConnected((SaboteurTile) dropped)) {
+                    return 1;
+                }
             }
+
         }
         return 0;
     }
@@ -340,6 +350,7 @@ public class MyTools {
         }else{
             hand = board.player1Cards;
         }
+        //consider the chance of them winning
 
         return 0;
     }
@@ -368,16 +379,50 @@ public class MyTools {
         return result;
 
     }
-
+    public static boolean checkPlayingNearnugget(SBoardstateC board){
+        if(board.nuggetpos==0){
+            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos +1], originint)) {
+                return true;
+            }
+        }
+        if(board.nuggetpos == 1) {
+            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos + 1], originint)) {
+                return true;
+            }
+            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos - 1], originint)) {
+                return true;
+            }
+        }
+        if(board.nuggetpos==2){
+            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos - 1], originint)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public static double helpWinStrategy(SBoardstateC board){
+        if(checkPlayingNearnugget(board)){
+            return -1000;
+        }
+        return 0;
+    }
     public static boolean checkConnected(SaboteurCard card){
         if(tileCard(card)) {
-            int[][] path= ((SaboteurTile)card).getPath();
-            if(path[1][1]==1) {
-                //horizontal line,
-                if (path[0][1] == 1 && path[2][1] == 1 || path[0][1] == 1 && path[1][0] == 1 ||
-                        path[0][1] == 1 && path[1][1] == 1 || path[1][0] == 1 && path[1][1] == 1) {
-                    return true;
-                }
+            return(checkConnected((SaboteurTile)card));
+        }
+        return false;
+
+    }
+    public static boolean checkConnected(SaboteurTile card){
+        int[][] path= ((SaboteurTile)card).getPath();
+        String name = card.getIdx();
+        if(path[1][1]==1) {
+            //horizontal line,
+            if (name.equals("0")||name.equals("5")||name.equals("5_flip")||name.equals("6")||name.equals("6_flip")||
+                    name.equals("7")||name.equals("7_flip")||name.equals("8")||name.equals("9")||
+                    name.equals("9_flip")||name.equals("10")
+            ){
+                return true;
             }
         }
         return false;
@@ -388,8 +433,7 @@ public class MyTools {
         if(tileCard(card)){
             int[][] path= ((SaboteurTile)card).getPath();
             if(path[1][1] ==1){
-                if(path[0][1] == 1 && path[2][1] == 1 || path[0][1] == 1 && path[1][0] == 1 ||
-                        path[0][1] == 1 && path[1][2] == 1 || path[1][0] == 1 && path[1][2] == 1){
+                if(checkConnected(card)){
                     return 20;
                 }
             }
@@ -436,7 +480,7 @@ public class MyTools {
         board.longestpath();
         int[] newmaxpath = board.maxpath;
 
-        if(newmaxpath!= maxpath) {
+        if(newmaxpath[0]!= maxpath[0] || newmaxpath[1]!= maxpath[1] ) {
             double currentmax = euclideanDistance(origin, board.maxpath);
             if(currentmax>previousmax){
                 return 5;
@@ -704,6 +748,9 @@ public class MyTools {
         int turn = board.getTurnNumber();
         if(sideWayConnect(board.lastplayed.getCardPlayed())){
             result = 0.002*turn*turn-1;
+            if(result <0){
+                System.out.println("Why negative");
+            }
             // this is a very slow  growing exponential function
             // starts from -1 when x=0 and reaches 0 when x=10
         }
