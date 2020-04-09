@@ -20,9 +20,11 @@ public class MyTools {
     public static final int[][] hiddenPos = {{originPos+7,originPos-2},{originPos+7,originPos},{originPos+7,originPos+2}};
     public static final int[][] hiddenPosint = {{3*(originPos+7),3*(originPos-2)},{3*(originPos+7),3*(originPos)},{3*(originPos+7),3*(originPos+2)}};
     public static final int[][] hiddenPosintmid = {{3*(originPos+7)+1,3*(originPos-2)+1},{3*(originPos+7)+1,3*(originPos)+1},{3*(originPos+7)+1,3*(originPos+2)+1}};
-
+    public static boolean playMalus=false;
+    public static ArrayList<SaboteurMove> legalmoves;
     public static boolean[] hiddenRevealedhist={false,false,false};
     public static boolean[] hiddenRevealed = {false,false,false};
+    public static int playerturn;
     //public static int nuggetpos=-1;
 
     //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
@@ -55,25 +57,38 @@ public class MyTools {
         //Map<String,Integer> compo = SaboteurCard.getDeckcomposition();
         ArrayList<SaboteurCard> deck =new ArrayList<SaboteurCard>();
         String[] tiles ={"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"};
-        for(int i=0;i<tiles.length;i++){
-            for(int j=0;j<compo.get(tiles[i]);j++){
-                deck.add(new SaboteurTile(tiles[i]));
+        Set<String> compostring = compo.keySet();
+        System.out.println(compostring);
+        for (int i = 0; i < tiles.length; i++) {
+            if(compostring.contains(tiles[i])) {
+                for (int j = 0; j < compo.get(tiles[i]); j++) {
+                    deck.add(new SaboteurTile(tiles[i]));
+                }
             }
         }
-        for(int i = 0; i < compo.get("destroy");i++){
-            deck.add(new SaboteurDestroy());
+        if(compostring.contains("destroy")) {
+            for (int i = 0; i < compo.get("destroy"); i++) {
+                deck.add(new SaboteurDestroy());
+            }
         }
-        for(int i = 0; i < compo.get("malus");i++){
-            deck.add(new SaboteurMalus());
+        if(compostring.contains("malus")) {
+            for (int i = 0; i < compo.get("malus"); i++) {
+                deck.add(new SaboteurMalus());
+            }
         }
-        for(int i = 0; i < compo.get("bonus");i++){
-            deck.add(new SaboteurBonus());
+        if(compostring.contains("bonus")) {
+            for (int i = 0; i < compo.get("bonus"); i++) {
+                deck.add(new SaboteurBonus());
+            }
         }
-        for(int i = 0; i < compo.get("map");i++){
-            deck.add(new SaboteurMap());
+        if(compostring.contains("map")) {
+            for (int i = 0; i < compo.get("map"); i++) {
+                deck.add(new SaboteurMap());
+            }
         }
         Collections.shuffle(deck);
         return deck;
+
     }
     public static Map<String,Integer> cloneDeck(Map<String,Integer> deck){
         HashMap<String,Integer> copy = new HashMap<String,Integer>();
@@ -212,6 +227,7 @@ public class MyTools {
 
         if(board.nuggetpos!=-1){
             System.out.println("We know where the nugget is: "+board.nuggetpos);
+            board.hiddenCards[board.nuggetpos].getIdx().equals("nugget");
             result= result/euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos]);
 
             //check winning condition
@@ -243,6 +259,21 @@ public class MyTools {
         // but ocationally doesn't seem to choose to connect even when it does find a path???
         // could be a minor problem with this function but it seems that it works most times
 
+        /*
+        if(board.turnNumber > 10 && board.turnNumber < 45) {
+            result += connectingTwoPaths(board);
+
+            result += stalemateStrategy(board);
+
+            result += outlastStrategy(board);
+        }
+*/
+        //result += stalemateStrategy(board);
+
+        //result += outlastStrategy(board);
+
+        result += devalueUpcards(board);
+
         result += MyTools.destroyStrategy(board);//+maximumPathStrategy(board);
 
         result += MyTools.dropStrategy(board);
@@ -253,7 +284,11 @@ public class MyTools {
 
         result += saveCardsStrategy(board);
 
+        result += safeGuardStrategy(board);
+
         result += helpWinStrategy(board);
+
+        result += pathStrategy(board);
         //replaced with countHiddenStrategy()
         //Check if winning move or connects to hidden
 /*
@@ -272,10 +307,7 @@ public class MyTools {
 */
 
         // give bonus for finding a path from origin
-        if(pathToMeplaced(intboard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})){
-            System.out.println("Path exists");
-            result+=5.0;
-        }
+
 
 
         // safe guard. weight down the moves that may allow opponents to connect to a hidden tile
@@ -284,14 +316,6 @@ public class MyTools {
         // maybe:
         // play slightly different strategies based on the which tiles are revealed?
 
-        if(euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
-            result -= 60;
-        }
 
 
         if(result< 0){
@@ -301,6 +325,46 @@ public class MyTools {
         //Destroy tiles that disconnect
 
         return(result);
+    }
+    public static double safeGuardStrategy(SBoardstateC board){
+        double result = 0;
+        SaboteurMove move=board.lastplayed;
+        //test
+        if(euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
+                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
+                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
+                euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
+                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
+                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
+            int[] pos = board.lastplayedpos;
+            if (pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint)){
+                if (!outlastStrategy(board)) {
+                    result -= 60;
+                    playMalus=true;
+                }
+            }
+        }
+
+        if(board.getTurnPlayer()==1){
+            if(board.player1nbMalus>0) result=0; System.out.println("heyy");
+
+        }else{
+            if(board.player2nbMalus>0) result=0; System.out.println("heyy");
+        }
+        return result;
+    }
+
+    public static double devalueUpcards(SBoardstateC board){
+        SaboteurMove played = board.lastplayed;
+        int[] pos = played.getPosPlayed();
+        if(pos[0]<5){
+            if(played.getCardPlayed() instanceof SaboteurTile) {
+                if(checkConnected(played.getCardPlayed())) {
+                    return -10;
+                }
+            }
+        }
+        return 0;
     }
     //Value cards being played near the bottom.
     public static double bottomStrategy(SBoardstateC board){
@@ -357,6 +421,7 @@ public class MyTools {
     public static double destroyStrategy(SBoardstateC board){
         SaboteurMove played = board.lastplayed;
         SBoardstateC clone = new SBoardstateC(board);
+        ArrayList<SaboteurMove> moves = board.getAllLegalMoves(1-board.turnPlayer);
         int[] pos = played.getPosPlayed();
         ArrayList<SaboteurCard> hand;
         if(board.turnPlayer == 1) {
@@ -369,12 +434,22 @@ public class MyTools {
         if(played.getCardPlayed().getName().equals("Destroy")){
             SaboteurCard destroyed=board.destroyed;
             if(checkConnected(destroyed)){
-                result=-5;
+                result=-20;
+                result+=euclideanDistance(origin,pos);
             }else{
                 result+=10;
+                for (int i = 0; i < moves.size();i++){
+                    ArrayList<SaboteurMove> opponent= board.getAllLegalMovesDeck2();
+                    board.processMove(moves.get(i),false);
+                    if(outlastStrategy(board)){
+                        result+=10;
+                    }
+                }
+
                 System.out.println("GOOD Destroy");
             }
         }
+        if(isMalused(board)){ return -result;}
 
         return result;
 
@@ -470,6 +545,14 @@ public class MyTools {
         pos[0]=pos[0]*3;
         pos[1]=pos[1]*3;
         return pos;
+    }
+    public static double pathStrategy(SBoardstateC board){
+        double result = 0;
+        if(pathToMeplaced(board.intBoard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})) {
+            System.out.println("Path exists");
+            result = 10.0;
+        }
+        return result;
     }
     //Value cards that increase the max path.
     public static double maximumPathStrategy(SBoardstateC board){
@@ -613,6 +696,110 @@ public class MyTools {
         //Return remaining possible moves. Feed to getalllegal.
         return compo;
     }
+    public static boolean outlastStrategy(SBoardstateC boardState){
+        //Sabotage and outlast the other player. Considering the remaining moves, ie. tiles
+        ArrayList<SaboteurMove> legalMoves = boardState.getAllLegalMovesDeck2();
+// check game saving, ie if i can destroy, destroy.
+
+        if(boardState.turnNumber >= 5){
+           for(int i = 0; i < legalMoves.size();i++){
+               SBoardstateC clone =new SBoardstateC(boardState);
+               clone.processMove(legalMoves.get(i),false);
+               //this.hiddenCards[i].getIdx().equals("nugget")
+               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                       boardState.hiddenRevealed[2] == false){
+                   boardState.hiddenCards[0].getIdx().equals("nugget");
+                   boardState.hiddenCards[1].getIdx().equals("nugget");
+                   boardState.hiddenCards[2].getIdx().equals("nugget");
+               }
+               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                       boardState.hiddenRevealed[2] == true){
+                   boardState.hiddenCards[0].getIdx().equals("nugget");
+                   boardState.hiddenCards[1].getIdx().equals("nugget");
+               }
+               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == true &&
+                       boardState.hiddenRevealed[2] == false){
+                   boardState.hiddenCards[0].getIdx().equals("nugget");
+                   boardState.hiddenCards[2].getIdx().equals("nugget");
+               }
+               if(boardState.hiddenRevealed[0] == true && boardState.hiddenRevealed[1] == false &&
+                       boardState.hiddenRevealed[2] == false){
+                   boardState.hiddenCards[1].getIdx().equals("nugget");
+                   boardState.hiddenCards[2].getIdx().equals("nugget");
+               }
+               int winner = clone.getWinner();
+               if(winner==(1-playerturn)){
+                   System.out.println(winner);
+                   return false;
+               }
+           }
+
+        }
+
+        return true;
+    }
+
+    public static double stalemateStrategy(SBoardstateC boardState){
+        double bonus = 0;
+        double constant = 30;
+        double constant2=10;
+        SaboteurMove move = boardState.lastplayed;
+        int[] pos = move.getPosPlayed();
+        if(boardState.stalemate){
+            if(checkConnected(boardState.lastplayed.getCardPlayed())){
+                constant = -5*(constant/(double)boardState.turnNumber);
+                bonus = bonus+constant;
+            }else{
+                bonus+=30;
+                constant2=constant2/euclideanDistance(move.getPosPlayed(),origin);
+                bonus+=constant2;
+            }
+            if(pos[0]==11 || pos[0]==12 && pos[1]==2||pos[0]==12 && pos[1]==8||
+                    pos[0]==12 && pos[1]==4||pos[0]==12 && pos[1]==6||pos[0]==13 && pos[1]==3||
+                    pos[0]==13 && pos[1]==5||pos[0]==13 && pos[1]==7){
+                bonus=0;
+            }
+
+        }
+        return bonus;
+    }
+    public static boolean checkPointingdown(SaboteurCard card){
+        if(card instanceof SaboteurTile){
+           int path[][] = ((SaboteurTile) card).getPath();
+           if(path[1][1]==1 && path[0][1]==1 && path[2][1]==1){
+               return true;
+           }
+        }
+        return false;
+    }
+    public static double connectingTwoPaths(SBoardstateC boardState){
+        SaboteurMove move = boardState.lastplayed;
+        SaboteurTile[][] tiles = boardState.getHiddenBoard();
+        double count = 0;
+        int[] pos = move.getPosPlayed();
+        int[] newposabove= new int[]{pos[0]-1,pos[1]};
+        int[] newposbelow= new int[]{pos[0]+1,pos[1]};
+        int[] newposleft= new int[]{pos[0],pos[1]-1};
+        int[] newposright= new int[]{pos[0],pos[1]+1};
+        if(newposabove[0]>0) {
+            if (tiles[newposabove[0]][newposabove[1]] != null){
+                count += 1;
+            }
+        }
+        if(tiles[newposbelow[0]][newposbelow[1]] != null){
+            count+=1;
+        }
+        if(tiles[newposright[0]][newposright[1]] != null){
+            count+=1;
+        }
+        if(newposleft[1] >0){
+            if(tiles[newposleft[0]][newposleft[1]] != null) {
+                count += 1;
+            }
+        }
+        return (count*5);
+    }
+
     public static double minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer, double maxerscore){
         //System.out.println("Current Depth: " + currentdepth);
 /*
@@ -774,9 +961,11 @@ public class MyTools {
         }
         return false;
     }
+
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions2 )
     {
         boardState=updateRevealHistory(boardState);
+        playerturn=boardState.getTurnPlayer();
         double bestVal = -1000;
         double worstVal = 1000;
 
@@ -790,6 +979,9 @@ public class MyTools {
         System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.player1hiddenRevealed[0] + boardState.player1hiddenRevealed[1] + boardState.player1hiddenRevealed[1]);
 
         ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
+        legalmoves=possible_actions2;
+
+
         if(possible_actions.size()==possible_actions2.size()){
             System.out.println("In Business");
         }else{
@@ -824,6 +1016,31 @@ public class MyTools {
             if (isMalused(boardState) && played.getCardPlayed().getName().equals("Bonus")) {
                 return played;
             }
+            //play malus card if don't have bonus
+            else if(isMalused(boardState) && played.getCardPlayed().getName().equals("Malus")){
+                return played;
+            }
+            if(playMalus) {
+                for (SaboteurCard c:boardState.getCurrentPlayerCards()){
+                    if(c.getName().equals("Malus")) {
+                        System.out.println("playin malus");
+                        return new SaboteurMove(c,0,0, boardState.turnPlayer);
+                    }
+                }
+            }
+
+            //boardState.processMove(move);
+            // play malus if next move is dangerous move
+            /*
+            else if(safeGuardStrategy(boardState)!=0){
+                for (SaboteurCard c:boardState.getCurrentPlayerCards()){
+                    if(c.getName().equals("Malus")) {
+                        System.out.println("playin malus");
+                        return new SaboteurMove(c,0,0, boardState.turnPlayer);
+                    }
+                }
+            }*/
+
             //Get it to always play map card if unknown
             if (played.getCardPlayed().getName().equals("Map")) {
                 boolean[] revealed = boardState.returnRevealed();
@@ -854,6 +1071,7 @@ public class MyTools {
                     bestMove = played;
                     bestVal = moveVal;
                     pboard = newboard;
+
                 }
                 if (moveVal < worstVal) {
                     worstMove = played;
@@ -881,6 +1099,9 @@ public class MyTools {
 
         newboard=checkHiddenupdate(newboard);
         newboard.processMove(played,false);
+        if(newboard.lastplayedpos == null){
+            System.out.println("ERROR");
+        }
         newboard.compo=updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
         return newboard;
     }
@@ -897,10 +1118,19 @@ public class MyTools {
             System.out.println("");
         }
     }
-    public static ArrayList<SaboteurCard> getTopDeck(Map<String,Integer> compo) {
+    public static ArrayList<SaboteurCard> getTopDeck(Map<String,Integer> compo,int no) {
 
         Map<String, Integer> sortedMap = sortByValue(compo);
-        sortedMap = getTopCards(sortedMap,7);
+        sortedMap = getTopCards(sortedMap,no);
+        return(getDeckfromcompo(sortedMap));
+    }
+    public static ArrayList<SaboteurCard> getTopDeckone(Map<String,Integer> compo,int no) {
+
+        Map<String, Integer> sortedMap = sortByValue(compo);
+        sortedMap = getTopCards(sortedMap,no);
+        for (Map.Entry<String, Integer> entry : sortedMap.entrySet()) {
+            sortedMap.put(entry.getKey(),1);
+        }
         return(getDeckfromcompo(sortedMap));
     }
     public static Map<String,Integer> getTopCards(Map<String, Integer> map,int nocards) {

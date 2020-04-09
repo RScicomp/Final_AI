@@ -28,6 +28,7 @@ public class StudentPlayer extends SaboteurPlayer {
     public static SBoardstateC oldboard;
     public static boolean[] hiddenRevealedhist={false,false,false};
     public static int[] maxpath;
+    public static boolean stalemate=false;
 
     public StudentPlayer() {
         super("260729805");
@@ -57,8 +58,10 @@ public class StudentPlayer extends SaboteurPlayer {
             }
         }
 
+        setStalemate(clone);
+        clone.stalemate = stalemate;
 
-        clone.compo=compo;
+        clone.compo = compo;
         clone = MyTools.checkHiddenupdate(clone);
         clone= updateRevealHistory(clone);
 
@@ -74,11 +77,54 @@ public class StudentPlayer extends SaboteurPlayer {
             System.out.println("Illegal move!");
             myMove = boardState.getRandomMove();
         }
-        oldboard = clone;
 
+        oldboard = clone;
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;
     }
+    public static void setStalemate(SBoardstateC board){
+        //in a stalemate start saving all your cards.
+        SaboteurTile[][] tiles = board.getHiddenBoard();
+        SaboteurTile[] threats = {tiles[11][2],tiles[11][4],tiles[11][6],tiles[11][8]};
+        SaboteurTile[] threats2 = {tiles[10][2],tiles[10][4],tiles[10][6],tiles[10][8]};
+        SaboteurTile[] sidethreats = {tiles[12][1],tiles[12][10]};
+        boolean changed = false;
+
+        for (int i = 0; i < threats2.length;i++) {
+            if (threats[i] != null){
+                if(MyTools.checkConnected(threats[i]) && tiles[9][i] instanceof SaboteurTile){
+                    stalemate = true;
+                    changed= true;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < sidethreats.length;i++) {
+            if (sidethreats[i] != null && tiles[9][i] instanceof SaboteurTile){
+                if(MyTools.checkConnected(sidethreats[i])){
+                    stalemate = true;
+                    changed= true;
+
+                    break;
+                }
+            }
+        }
+        for(int i = 0; i <=8;i++){
+            if(tiles[9][i] != null && tiles[9][i] instanceof SaboteurTile){
+                if(MyTools.checkPointingdown(tiles[9][i])){
+                    stalemate = true;
+                    changed= true;
+                    break;
+                }
+            }
+        }
+        if(changed==false){
+            stalemate=false;
+        }
+
+    }
+
+
     public static SBoardstateC updateRevealHistory(SBoardstateC board){
         if(board.turnPlayer == 1) {
             for (int i  =0; i < board.player1hiddenRevealed.length;i++){
