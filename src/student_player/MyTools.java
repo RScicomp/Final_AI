@@ -329,6 +329,7 @@ public class MyTools {
     public static double safeGuardStrategy(SBoardstateC board){
         double result = 0;
         SaboteurMove move=board.lastplayed;
+        int opponent = board.getTurnPlayer() ;
         //test
         if(euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
                 euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
@@ -338,7 +339,7 @@ public class MyTools {
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
             int[] pos = board.lastplayedpos;
             if (pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint)){
-                if (!outlastStrategy(board)) {
+                if (board.getNbMalus(opponent)>0||!outlastStrategy(board)) {
                     result -= 60;
                     playMalus=true;
                 }

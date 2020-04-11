@@ -45,6 +45,7 @@ public class StudentPlayer extends SaboteurPlayer {
         // For example, maybe you'll need to load some pre-processed best opening
         // strategies...
         // MyTools.getSomething();
+        int playerturn=1-boardState.getTurnPlayer();
         ArrayList<SaboteurCard> hand = boardState.getCurrentPlayerCards();
         Map<String,Integer> compo = MyTools.updateDeck(SaboteurCard.getDeckcomposition(),boardState.getHiddenBoard());
         ArrayList<SaboteurCard> deck = MyTools.getDeckfromcompo(compo);
@@ -55,6 +56,16 @@ public class StudentPlayer extends SaboteurPlayer {
         for(int i = 0; i < 3;i++) {
             if (MyTools.pathToMeplaced(boardState.getHiddenIntBoard(), MyTools.originint, MyTools.hiddenPosintmid[i])) {
                 hiddenRevealedhist[i] = true;
+            }
+        }
+        if(playerturn==1){
+            if(boardState.getNbMalus(0) >0){
+                clone.player1nbMalus=1;
+            }
+        }
+        else{
+            if(boardState.getNbMalus(1) >0){
+                clone.player2nbMalus=1;
             }
         }
 
