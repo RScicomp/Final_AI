@@ -697,8 +697,8 @@ public class SBoardstateC extends BoardState {
             hand = this.player1Cards;
             isBlocked = player1nbMalus > 0;
         }
-        int min =  Math.min((56-turnNumber)/2,15);
-        hand=MyTools.getTopDeck(compo, Math.min((56-turnNumber)/2,7));
+        int min =  Math.min(SaboteurCard.getDeck().size()-turnNumber,SaboteurCard.getDeck().size());
+        hand=MyTools.getTopDeck(compo, min);
         System.out.println("Opponents Hand:");
         for (int i = 0; i < hand.size(); i++) {
             System.out.println(hand.get(i).getName());

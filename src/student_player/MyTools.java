@@ -330,18 +330,27 @@ public class MyTools {
         double result = 0;
         SaboteurMove move=board.lastplayed;
         int opponent = board.getTurnPlayer() ;
+        SaboteurMove lastplayed = board.lastplayed;
         //test
-        if(euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
-                euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
-            int[] pos = board.lastplayedpos;
-            if (pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint)){
-                if (!(board.getNbMalus(opponent)>0) && !outlastStrategy(board)) {
-                    result -= 60;
-                    playMalus=true;
+        //if opponent is not malused
+        if(!(board.getNbMalus(opponent)>0)) {
+            if (euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
+                    euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
+                    euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
+                    euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
+                    euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
+                    euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
+                int[] pos = board.lastplayedpos;
+                if (pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint)) {
+                    //IF your opponent can win it evaluates to !(false)==True
+                    boolean outlast = !outlastStrategy(board);
+                    //IF opponent is malused evaluates to !(true)=False
+                    boolean malused = !(board.getNbMalus(opponent) > 0);
+                    if (!(board.getNbMalus(opponent) > 0) || !outlastStrategy(board)) {
+                        result -= 60;
+                        playMalus = true;
+                    }
+
                 }
             }
         }
@@ -701,34 +710,39 @@ public class MyTools {
         //Sabotage and outlast the other player. Considering the remaining moves, ie. tiles
         ArrayList<SaboteurMove> legalMoves = boardState.getAllLegalMovesDeck2();
 // check game saving, ie if i can destroy, destroy.
-
+        SaboteurMove lastplayed = boardState.lastplayed;
         if(boardState.turnNumber >= 5){
            for(int i = 0; i < legalMoves.size();i++){
                SBoardstateC clone =new SBoardstateC(boardState);
-               clone.processMove(legalMoves.get(i),false);
                //this.hiddenCards[i].getIdx().equals("nugget")
-               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
-                       boardState.hiddenRevealed[2] == false){
-                   boardState.hiddenCards[0].getIdx().equals("nugget");
-                   boardState.hiddenCards[1].getIdx().equals("nugget");
-                   boardState.hiddenCards[2].getIdx().equals("nugget");
+               if(boardState.nuggetpos==-1) {
+                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                           boardState.hiddenRevealed[2] == false) {
+                       boardState.hiddenCards[0].getIdx().equals("nugget");
+                       boardState.hiddenCards[1].getIdx().equals("nugget");
+                       boardState.hiddenCards[2].getIdx().equals("nugget");
+                   }
+                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                           boardState.hiddenRevealed[2] == true) {
+                       boardState.hiddenCards[0].getIdx().equals("nugget");
+                       boardState.hiddenCards[1].getIdx().equals("nugget");
+                   }
+                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == true &&
+                           boardState.hiddenRevealed[2] == false) {
+                       boardState.hiddenCards[0].getIdx().equals("nugget");
+                       boardState.hiddenCards[2].getIdx().equals("nugget");
+                   }
+                   if (boardState.hiddenRevealed[0] == true && boardState.hiddenRevealed[1] == false &&
+                           boardState.hiddenRevealed[2] == false) {
+                       boardState.hiddenCards[1].getIdx().equals("nugget");
+                       boardState.hiddenCards[2].getIdx().equals("nugget");
+                   }
+               }else{
+                   boardState.hiddenCards[boardState.nuggetpos].getIdx().equals("nugget");
                }
-               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
-                       boardState.hiddenRevealed[2] == true){
-                   boardState.hiddenCards[0].getIdx().equals("nugget");
-                   boardState.hiddenCards[1].getIdx().equals("nugget");
-               }
-               if(boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == true &&
-                       boardState.hiddenRevealed[2] == false){
-                   boardState.hiddenCards[0].getIdx().equals("nugget");
-                   boardState.hiddenCards[2].getIdx().equals("nugget");
-               }
-               if(boardState.hiddenRevealed[0] == true && boardState.hiddenRevealed[1] == false &&
-                       boardState.hiddenRevealed[2] == false){
-                   boardState.hiddenCards[1].getIdx().equals("nugget");
-                   boardState.hiddenCards[2].getIdx().equals("nugget");
-               }
+               clone.processMove(legalMoves.get(i),false);
                int winner = clone.getWinner();
+               //If this move causes the opponet to win return false
                if(winner==(1-playerturn)){
                    System.out.println(winner);
                    return false;

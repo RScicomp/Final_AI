@@ -71,15 +71,10 @@ abstract public class SaboteurCard {
         deck.add(new SaboteurMalus());
         deck.add(new SaboteurMalus());
         deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
-        deck.add(new SaboteurMalus());
+        deck.add(new SaboteurBonus());
+        deck.add(new SaboteurBonus());
+        deck.add(new SaboteurBonus());
+
 
         deck.add(new SaboteurTile("8"));
         deck.add(new SaboteurTile("8"));
