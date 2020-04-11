@@ -1123,7 +1123,7 @@ public class SBoardstateC extends BoardState {
                         for(int j=0;j<3;j++) {
                             if (pos[0] == hiddenPos[j][0] && pos[1] == hiddenPos[j][1]) ph=j;
                         }
-                        this.player1hiddenRevealed[ph] = true;
+                        //this.player1hiddenRevealed[ph] = true;
                         break; //leave the loop....
                     }
                 }
@@ -1136,7 +1136,7 @@ public class SBoardstateC extends BoardState {
                         for(int j=0;j<3;j++) {
                             if (pos[0] == hiddenPos[j][0] && pos[1] == hiddenPos[j][1]) ph=j;
                         }
-                        this.player2hiddenRevealed[ph] = true;
+                        //this.player2hiddenRevealed[ph] = true;
                         break; //leave the loop....
                     }
                 }

@@ -1,0 +1,31 @@
+# Server version 0.08 running on macbook-pro-5.local:8123
+# Game ID: 869
+# Board class: Saboteur.SaboteurBoard
+# Timeout: 2000000000
+# First Move Timeout: 30000
+# Date: Sat Apr 11 00:02:17 EDT 2020
+# Player 1: Player-0, '260729805', running on localhost
+# Player 2: Player-1, 'Human', running on localhost
+START Player-0 260729805
+START Player-1 Human
+BoardInit:Malus,Destroy,Tile:6,Malus,Map,Tile:8,Tile:15,Tile:9,Bonus,Map,Tile:8,Tile:8,Tile:8,Tile:11,Bonus,Tile:0,Malus,Tile:9,Tile:8,Tile:4,Map,Tile:7,Bonus,Tile:5,Tile:2,Tile:5,Tile:5,Tile:0,Tile:8,Tile:8,Tile:0,Tile:8,Tile:6,Tile:8,Tile:8,Tile:9,Tile:10,Tile:6,Tile:8,Tile:10,Tile:1,Bonus,Tile:9,Tile:8,Tile:8,Bonus,Tile:8,Tile:8,Tile:3,Bonus,Tile:8,Tile:7,Malus,Tile:10,Tile:7,Tile:6,Tile:9,Tile:7,Tile:13,Tile:8,Tile:8,Tile:0,Destroy-Tile:8,Bonus,Map,Map,Tile:8,Tile:14,Destroy-Tile:5,Map,Malus,Tile:12,Tile:7,Tile:8,Tile:6-Tile:nugget,Tile:hidden2,Tile:hidden1
+Tile:8 6 5 1
+Map 12 5 0
+Tile:8 7 5 1
+Tile:5_flip 8 5 0
+Drop 2 0 1
+Tile:7 8 4 0
+Destroy 8 4 1
+Tile:6_flip 8 4 0
+Tile:6 9 4 1
+Tile:8 10 4 0
+Map 12 5 1
+Malus 0 0 0
+Bonus 0 0 1
+Malus 0 0 0
+Bonus 0 0 1
+Map 12 5 0
+Tile:8 11 4 1
+Tile:8 12 4 0
+GAMEOVER WINNER 0
+# Game ended: Sat Apr 11 00:04:32 EDT 2020

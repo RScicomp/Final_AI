@@ -25,6 +25,10 @@ public class MyTools {
     public static boolean[] hiddenRevealedhist={false,false,false};
     public static boolean[] hiddenRevealed = {false,false,false};
     public static int playerturn;
+    public static boolean connectTwohidden=false;
+    public static boolean[] hidden;
+    public static boolean globalsabotage =false;
+    public static SBoardstateC originalboard;
     //public static int nuggetpos=-1;
 
     //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
@@ -223,6 +227,13 @@ public class MyTools {
         if(board.lastplayed.getCardPlayed().equals("Drop")){
             return dropStrategy(board);
         }
+        if(board.lastplayed.getCardPlayed().getName().equals("Map")) {
+            return evalmapStrategy(board);
+        }
+
+        if(board.lastplayed.getCardPlayed().getName().equals("Destroy")) {
+            return destroyStrategy(board);//+maximumPathStrategy(board);
+        }
         double result = 20.0;
 
         if(board.nuggetpos!=-1){
@@ -272,9 +283,10 @@ public class MyTools {
 
         //result += outlastStrategy(board);
 
-        result += devalueUpcards(board);
 
-        result += MyTools.destroyStrategy(board);//+maximumPathStrategy(board);
+        result += checkConnectTwoHidden(board);
+
+        result += devalueUpcards(board);
 
         result += MyTools.dropStrategy(board);
 
@@ -325,6 +337,64 @@ public class MyTools {
         //Destroy tiles that disconnect
 
         return(result);
+    }
+    public static double checkConnectTwoHidden(SBoardstateC boardState){
+        if(boardState.getTurnPlayer()==1) {
+            hidden = boardState.player1hiddenRevealed;
+        }
+        else{
+            hidden = boardState.player2hiddenRevealed;
+        }
+        if(boardState.nuggetpos == -1) {
+            if (hidden[0] == false && hidden[1] == true || hidden[0] == true && hidden[1] == false || hidden[0] == false && hidden[1] == false) {
+                if (boardState.lastplayed.getCardPlayed() instanceof SaboteurTile) {
+                    int[][] path = ((SaboteurTile) boardState.lastplayed.getCardPlayed()).getPath();
+                    int[] pos = boardState.lastplayed.getPosPlayed();
+                    boolean sideway = sideWayConnect(boardState.lastplayed.getCardPlayed());
+                    if (pos[0] == 12 && pos[1] == 4 && sideWayConnect(boardState.lastplayed.getCardPlayed())) {
+                        return 600;
+                    }
+                }
+            }
+            if (hidden[1] == false && hidden[2] == true||hidden[1] == true && hidden[2] == false||hidden[1] == false && hidden[2] == false) {
+                if (boardState.lastplayed.getCardPlayed() instanceof SaboteurTile) {
+                    int[][] path = ((SaboteurTile) boardState.lastplayed.getCardPlayed()).getPath();
+                    int[] pos = boardState.lastplayed.getPosPlayed();
+                    boolean sideway = sideWayConnect(boardState.lastplayed.getCardPlayed());
+                    if (pos[0] == 12 && pos[1] == 4 && sideWayConnect(boardState.lastplayed.getCardPlayed())) {
+                        return 600;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+    public static double evalmapStrategy(SBoardstateC boardState){
+        SaboteurMove played = boardState.lastplayed;
+
+        int[] pos = played.getPosPlayed();
+        if(boardState.nuggetpos==-1) {
+            if (!(boardState.getNbMalus(boardState.getTurnPlayer()) > 0)) {
+                if (played.getCardPlayed().getName().equals("Map")) {
+
+                    boolean[] revealed;
+                    if (boardState.getTurnPlayer() == 1) {
+                        revealed = boardState.player2hiddenRevealed;
+                    } else {
+                        revealed = boardState.player1hiddenRevealed;
+                    }
+                    if (revealed[0] != true && pos[1] == 3 ||
+                            revealed[1] != true && pos[1] == 5 || revealed[2] != true && pos[1] == 7) {
+                        System.out.println("Never Played this card before");
+                        if (boardState.nuggetpos == -1) {
+                            return 500;
+                        }
+                        System.out.println("Not playing since we know where it is");
+                    }
+                }
+            }
+        }
+        return 0;
     }
     public static double safeGuardStrategy(SBoardstateC board){
         double result = 0;
@@ -430,9 +500,11 @@ public class MyTools {
     }
     public static double destroyStrategy(SBoardstateC board){
         SaboteurMove played = board.lastplayed;
+        SaboteurCard destroyed = board.destroyed;
         SBoardstateC clone = new SBoardstateC(board);
         ArrayList<SaboteurMove> moves = board.getAllLegalMoves(1-board.turnPlayer);
         int[] pos = played.getPosPlayed();
+        int[] intpos = new int[]{pos[0]*3+1,pos[1]*3+1};
         ArrayList<SaboteurCard> hand;
         if(board.turnPlayer == 1) {
             hand = board.player2Cards;
@@ -440,9 +512,32 @@ public class MyTools {
             hand = board.player1Cards;
         }
         double result=0;
-
-        if(played.getCardPlayed().getName().equals("Destroy")){
-            SaboteurCard destroyed=board.destroyed;
+        if(board.getNbMalus(1-board.getTurnPlayer())>0){
+            destroyed=board.destroyed;
+            return euclideanDistance(origin,pos);
+        }
+        if(globalsabotage){
+            if(pathToMeplaced(originalboard.getHiddenIntBoard(),originint,intpos)){
+                if(!pathToMeplaced(board.getHiddenIntBoard(),originint,intpos)){
+                    result+=100;
+                }
+            }
+            return(result+euclideanDistance(origin,pos));
+        }
+        //If destroyed a disconnect card.
+        if(!checkConnected(destroyed)){
+            for (int i = 0; i < moves.size();i++){
+                int[] handpos=moves.get(i).getPosPlayed();
+                if(handpos[0]==pos[0] && handpos[1]==pos[1]){
+                    SBoardstateC cloneboard = new SBoardstateC(originalboard);
+                    cloneboard.processMove(moves.get(i),false);
+                    if(pathToMeplaced(cloneboard.getHiddenIntBoard(),originint,intpos)){
+                        return 10 + euclideanDistance(origin,pos);
+                    }
+                }
+            }
+        }
+            /*
             if(checkConnected(destroyed)){
                 result=-20;
                 result+=euclideanDistance(origin,pos);
@@ -457,9 +552,8 @@ public class MyTools {
                 }
 
                 System.out.println("GOOD Destroy");
-            }
-        }
-        if(isMalused(board)){ return -result;}
+            }*/
+
 
         return result;
 
@@ -640,7 +734,7 @@ public class MyTools {
             if (nonhiddencount == 2) {
                 System.out.println("Great. We know where it is at turn: "+boardState.getTurnNumber());
                 boardState.nuggetpos = falseindex;
-                boardState.nuggetpos=falseindex;
+                boardState.nuggetpos = falseindex;
                 if(boardState.getTurnPlayer()==1) {
                     boardState.player1hiddenRevealed[falseindex] = true;
                     //boardState.board[hiddenPos[nuggetpos][0]][hiddenPos[nuggetpos][1]];
@@ -933,11 +1027,10 @@ public class MyTools {
         Map<String,Integer> deckcomp = board.compo;
         for (int i =0;i < possible_actions.size();i++){
             SaboteurCard card = possible_actions.get(i);
+
             if(checkConnected(card)==true||card.getName().equals("Bonus")||card.getName().equals("Malus")){
                 buildingcards +=1;
-            }else if (card.getName().equals("Destroy")||card.getName().equals("Malus")||card.getName().equals("Tile")){
-                sabotagingcards+=1;
-            }else{
+            }else if (card.getName().equals("Destroy")||card.getName().equals("Malus")||!checkConnected(card)){
                 sabotagingcards+=1;
             }
         }
@@ -979,6 +1072,8 @@ public class MyTools {
 
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions2 )
     {
+        hidden = boardState.hiddenRevealed;
+        originalboard = boardState;
         boardState=updateRevealHistory(boardState);
         playerturn=boardState.getTurnPlayer();
         double bestVal = -1000;
@@ -1020,6 +1115,7 @@ public class MyTools {
         if(activeSabotager(boardState)){
             System.out.println("Sabotager!");
             sabotage= true;
+            globalsabotage=true;
         }
 
         SBoardstateC pboard = new SBoardstateC(boardState);
@@ -1057,6 +1153,7 @@ public class MyTools {
             }*/
 
             //Get it to always play map card if unknown
+            /*
             if (played.getCardPlayed().getName().equals("Map")) {
                 boolean[] revealed = boardState.returnRevealed();
                 if (revealed[0] != true && pos[1] == 3 ||
@@ -1067,36 +1164,37 @@ public class MyTools {
                     }
                     System.out.println("Not playing since we know where it is");
                 }
-            } else {
-                if (sabotage == true) {
-                    if (isSabotagingMove(played)) {
-                        moveVal += 5;
-                        System.out.println("Sabotaging move");
-                    }
-                }
-                SBoardstateC newboard = makeMove(played, boardState, false);
-                //if (boardState.isLegal(played)) {
-                moveVal += evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
-                System.out.println("MOVE VALUE: " + played.toPrettyString() + " " + moveVal);
-                // If the value of the current move is
-                // more than the best value, then update
-                // best
+            }*/
 
-                if (moveVal > bestVal) {
-                    bestMove = played;
-                    bestVal = moveVal;
-                    pboard = newboard;
-
+            if (sabotage == true) {
+                if (isSabotagingMove(played)) {
+                    moveVal += 100;
+                    System.out.println("Sabotaging move");
                 }
-                if (moveVal < worstVal) {
-                    worstMove = played;
-                    worstVal = moveVal;
-                    pboard = newboard;
-                }
+            }
+            SBoardstateC newboard = makeMove(played, boardState, false);
+            //if (boardState.isLegal(played)) {
+            moveVal += evaluate2(newboard);//minimax(0, maxdepth, newboard, true, 0);
+            System.out.println("MOVE VALUE: " + played.toPrettyString() + " " + moveVal);
+            // If the value of the current move is
+            // more than the best value, then update
+            // best
 
-                //}
+            if (moveVal > bestVal) {
+                bestMove = played;
+                bestVal = moveVal;
+                pboard = newboard;
 
             }
+            if (moveVal < worstVal) {
+                worstMove = played;
+                worstVal = moveVal;
+                pboard = newboard;
+            }
+
+            //}
+
+
         }
         System.out.println("Playing simulation from first move: " +bestMove.toPrettyString());
         System.out.println("The resulting evaluation: " + evaluate2(pboard));

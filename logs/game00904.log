@@ -1,0 +1,21 @@
+# Server version 0.08 running on macbook-pro-5.local:8123
+# Game ID: 904
+# Board class: Saboteur.SaboteurBoard
+# Timeout: 2000000000
+# First Move Timeout: 30000
+# Date: Sat Apr 11 01:23:36 EDT 2020
+# Player 1: Player-0, '260729805', running on localhost
+# Player 2: Player-1, 'Human', running on localhost
+START Player-0 260729805
+START Player-1 Human
+BoardInit:Tile:8,Destroy,Tile:14,Tile:14,Map,Tile:9,Tile:8,Tile:8,Tile:9,Bonus,Tile:14,Tile:0,Tile:15,Destroy,Map,Tile:9,Tile:10,Tile:6,Map,Tile:8,Tile:8,Tile:6,Tile:8,Tile:9,Tile:5,Tile:14,Tile:9,Map,Map,Map,Tile:5,Bonus,Tile:13,Map,Tile:7,Tile:8,Tile:6,Map,Map,Bonus,Map,Tile:14,Map,Malus,Tile:0,Tile:14,Tile:0,Map,Tile:14,Tile:14,Tile:14,Tile:14,Tile:12,Tile:8,Bonus,Tile:7,Map,Map,Malus,Tile:14,Bonus,Tile:0,Tile:14,Tile:7,Tile:8,Map,Bonus,Tile:4,Tile:11,Tile:10,Tile:14,Tile:6,Destroy,Tile:1,Tile:3,Tile:14,Tile:2,Tile:5,Tile:14,Tile:5,Tile:8,Tile:6,Malus,Tile:14,Map,Map,Destroy,Map,Bonus,Map-Tile:14,Map,Map,Map,Tile:14,Tile:14,Map-Tile:10,Tile:14,Tile:7,Tile:7,Malus,Malus,Tile:14-Tile:nugget,Tile:hidden2,Tile:hidden1
+Tile:14 6 5 1
+Tile:7 5 4 0
+Tile:8 5 6 1
+Tile:14_flip 4 4 0
+Drop 4 0 1
+Tile:10 6 4 0
+Drop 5 0 1
+Tile:14_flip 6 3 0
+Drop 3 0 1
+Tile:8 4 5 0
