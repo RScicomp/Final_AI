@@ -1,0 +1,68 @@
+# Server version 0.08 running on macbook-pro-5.local:8123
+# Game ID: 936
+# Board class: Saboteur.SaboteurBoard
+# Timeout: 2000000000
+# First Move Timeout: 30000
+# Date: Sat Apr 11 02:06:06 EDT 2020
+# Player 1: Player-0, '260729805', running on macbook-pro-5.local
+# Player 2: Player-1, 'RandomPlayer', running on macbook-pro-5.local
+START Player-0 260729805
+START Player-1 RandomPlayer
+BoardInit:Tile:4,Tile:7,Tile:10,Tile:0,Tile:8,Tile:5,Tile:8,Tile:6,Tile:9,Destroy,Tile:6,Map,Bonus,Tile:9,Tile:7,Tile:11,Tile:9,Tile:0,Tile:8,Tile:0,Tile:8,Tile:5,Tile:5,Destroy,Tile:15,Tile:7,Destroy,Tile:2,Tile:3,Tile:6,Tile:10,Tile:13,Map,Tile:9,Bonus,Tile:10,Tile:5,Tile:0,Map,Tile:7,Map-Tile:14,Tile:12,Malus,Tile:9,Tile:8,Tile:6,Bonus-Map,Tile:7,Tile:6,Map,Bonus,Malus,Tile:1-Tile:hidden2,Tile:hidden1,Tile:nugget
+Tile:9_flip 5 4 1
+Malus 0 0 0
+Malus 0 0 1
+Bonus 0 0 0
+Drop 4 0 1
+Tile:7 6 5 0
+Drop 5 0 1
+Tile:6 6 6 0
+Drop 1 0 1
+Tile:7 7 6 0
+Drop 4 0 1
+Destroy 7 6 0
+Drop 0 0 1
+Tile:0 7 6 0
+Drop 5 0 1
+Tile:5_flip 8 6 0
+Drop 1 0 1
+Tile:11 8 5 0
+Drop 3 0 1
+Tile:6 5 6 0
+Drop 2 0 1
+Tile:9 5 3 0
+Drop 3 0 1
+Tile:0 6 3 0
+Drop 5 0 1
+Destroy 8 6 0
+Drop 0 0 1
+Tile:5_flip 8 6 0
+Destroy 6 5 1
+Tile:1 9 5 0
+Drop 1 0 1
+Tile:0 7 3 0
+Drop 6 0 1
+Tile:2 10 5 0
+Drop 3 0 1
+Tile:9_flip 8 3 0
+Bonus 0 0 1
+Map 12 3 0
+Tile:8 11 5 1
+Map 12 5 0
+Tile:9 8 2 1
+Tile:10 11 6 0
+Tile:3 8 1 1
+Tile:7_flip 11 7 0
+Map 12 5 1
+Tile:6 9 2 0
+Tile:5_flip 10 2 1
+Tile:7 6 5 0
+Tile:15 11 4 1
+Tile:0 7 1 0
+Tile:4 5 2 1
+Tile:13 11 3 0
+Map 12 7 1
+Drop 0 0 0
+Map 12 5 1
+GAMEOVER DRAW
+# Game ended: Sat Apr 11 02:06:06 EDT 2020

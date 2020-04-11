@@ -65,44 +65,9 @@ abstract public class SaboteurCard {
         // Correction 22/03/2020: 2 maps were missing in the deck
         deck.add(new SaboteurMap());
         deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        // Correction 22/03/2020: 2 maps were missing in the deck
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
-        deck.add(new SaboteurMap());
+
 
         //ME
-
-        deck.add(new SaboteurMalus());
-
-        deck.add(new SaboteurDestroy());
-        deck.add(new SaboteurDestroy());
-        deck.add(new SaboteurDestroy());
-        deck.add(new SaboteurDestroy());
-        deck.add(new SaboteurDestroy());
-        deck.add(new SaboteurDestroy());
-
-
-
-
-        deck.add(new SaboteurTile("8"));
-        deck.add(new SaboteurTile("8"));
-        deck.add(new SaboteurTile("8"));
-        deck.add(new SaboteurTile("8"));
-        deck.add(new SaboteurTile("8"));
 
 
         return deck;

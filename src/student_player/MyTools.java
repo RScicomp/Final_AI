@@ -29,6 +29,8 @@ public class MyTools {
     public static boolean[] hidden;
     public static boolean globalsabotage =false;
     public static SBoardstateC originalboard;
+    public static SaboteurMove oppwinningmove=null;
+    public static boolean opponentMalused=false;
     //public static int nuggetpos=-1;
 
     //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
@@ -224,6 +226,9 @@ public class MyTools {
     }
     public static double evaluate2(SBoardstateC board){
         int[][] intboard= board.intBoard;
+        if(board.lastplayed.getCardPlayed().equals("Malus")){
+            System.out.println("Hello");
+        }
         if(board.lastplayed.getCardPlayed().equals("Drop")){
             return dropStrategy(board);
         }
@@ -282,7 +287,6 @@ public class MyTools {
         //result += stalemateStrategy(board);
 
         //result += outlastStrategy(board);
-
 
         result += checkConnectTwoHidden(board);
 
@@ -416,8 +420,10 @@ public class MyTools {
                     boolean outlast = !outlastStrategy(board);
                     //IF opponent is malused evaluates to !(true)=False
                     boolean malused = !(board.getNbMalus(opponent) > 0);
-                    if (!(board.getNbMalus(opponent) > 0) || !outlastStrategy(board)) {
-                        result -= 60;
+                    //IF your opponent can win based off this move and the opponent is not malused.
+                    //Malused and cannot win.
+                    if (!(board.getNbMalus(opponent) > 0) && !outlastStrategy(board)) {
+                        result -= 1000;
                         playMalus = true;
                     }
 
@@ -437,9 +443,9 @@ public class MyTools {
     public static double devalueUpcards(SBoardstateC board){
         SaboteurMove played = board.lastplayed;
         int[] pos = played.getPosPlayed();
-        if(pos[0]<5){
+        if(!globalsabotage){
             if(played.getCardPlayed() instanceof SaboteurTile) {
-                if(checkConnected(played.getCardPlayed())) {
+                if(((SaboteurTile) played.getCardPlayed()).getIdx().equals("5_flip")) {
                     return -10;
                 }
             }
@@ -512,6 +518,9 @@ public class MyTools {
             hand = board.player1Cards;
         }
         double result=0;
+        if(!outlastStrategy(board)){
+            return 0;
+        }
         if(board.getNbMalus(1-board.getTurnPlayer())>0){
             destroyed=board.destroyed;
             return euclideanDistance(origin,pos);
@@ -524,7 +533,7 @@ public class MyTools {
             }
             return(result+euclideanDistance(origin,pos));
         }
-        //If destroyed a disconnect card.
+        //If destroyed a disconnect card, and we can do better.
         if(!checkConnected(destroyed)){
             for (int i = 0; i < moves.size();i++){
                 int[] handpos=moves.get(i).getPosPlayed();
@@ -532,11 +541,13 @@ public class MyTools {
                     SBoardstateC cloneboard = new SBoardstateC(originalboard);
                     cloneboard.processMove(moves.get(i),false);
                     if(pathToMeplaced(cloneboard.getHiddenIntBoard(),originint,intpos)){
-                        return 10 + euclideanDistance(origin,pos);
+                        return 50 + euclideanDistance(origin,pos);
                     }
                 }
             }
         }
+
+
             /*
             if(checkConnected(destroyed)){
                 result=-20;
@@ -559,12 +570,12 @@ public class MyTools {
 
     }
     public static boolean checkPlayingNearnugget(SBoardstateC board){
-        if(board.nuggetpos==0){
-            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos +1], originint)) {
+        if (board.nuggetpos == 0) {
+            if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos + 1], originint)) {
                 return true;
             }
         }
-        if(board.nuggetpos == 1) {
+        if (board.nuggetpos == 1) {
             if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos + 1], originint)) {
                 return true;
             }
@@ -572,15 +583,17 @@ public class MyTools {
                 return true;
             }
         }
-        if(board.nuggetpos==2){
+        if (board.nuggetpos == 2) {
             if (pathToMeplaced(board.getHiddenIntBoard(), hiddenPosint[board.nuggetpos - 1], originint)) {
                 return true;
             }
         }
+
         return false;
     }
     public static double helpWinStrategy(SBoardstateC board){
-        if(checkPlayingNearnugget(board)){
+        //If we are playing near nugget and the opponent is not malused.
+        if(checkPlayingNearnugget(board) && !opponentMalused){
             return -1000;
         }
         return 0;
@@ -802,43 +815,45 @@ public class MyTools {
     }
     public static boolean outlastStrategy(SBoardstateC boardState){
         //Sabotage and outlast the other player. Considering the remaining moves, ie. tiles
-        ArrayList<SaboteurMove> legalMoves = boardState.getAllLegalMovesDeck2();
+
 // check game saving, ie if i can destroy, destroy.
         SaboteurMove lastplayed = boardState.lastplayed;
-        if(boardState.turnNumber >= 5){
+        if(boardState.turnNumber >= 5 && !opponentMalused){
+            if(boardState.nuggetpos==-1) {
+                if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                        boardState.hiddenRevealed[2] == false) {
+                    boardState.hiddenCards[0].getIdx().equals("nugget");
+                    boardState.hiddenCards[1].getIdx().equals("nugget");
+                    boardState.hiddenCards[2].getIdx().equals("nugget");
+                }
+                if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
+                        boardState.hiddenRevealed[2] == true) {
+                    boardState.hiddenCards[0].getIdx().equals("nugget");
+                    boardState.hiddenCards[1].getIdx().equals("nugget");
+                }
+                if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == true &&
+                        boardState.hiddenRevealed[2] == false) {
+                    boardState.hiddenCards[0].getIdx().equals("nugget");
+                    boardState.hiddenCards[2].getIdx().equals("nugget");
+                }
+                if (boardState.hiddenRevealed[0] == true && boardState.hiddenRevealed[1] == false &&
+                        boardState.hiddenRevealed[2] == false) {
+                    boardState.hiddenCards[1].getIdx().equals("nugget");
+                    boardState.hiddenCards[2].getIdx().equals("nugget");
+                }
+            }else{
+                boardState.hiddenCards[boardState.nuggetpos].getIdx().equals("nugget");
+            }
+            ArrayList<SaboteurMove> legalMoves = boardState.getAllLegalMovesDeck2();
            for(int i = 0; i < legalMoves.size();i++){
                SBoardstateC clone =new SBoardstateC(boardState);
                //this.hiddenCards[i].getIdx().equals("nugget")
-               if(boardState.nuggetpos==-1) {
-                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
-                           boardState.hiddenRevealed[2] == false) {
-                       boardState.hiddenCards[0].getIdx().equals("nugget");
-                       boardState.hiddenCards[1].getIdx().equals("nugget");
-                       boardState.hiddenCards[2].getIdx().equals("nugget");
-                   }
-                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
-                           boardState.hiddenRevealed[2] == true) {
-                       boardState.hiddenCards[0].getIdx().equals("nugget");
-                       boardState.hiddenCards[1].getIdx().equals("nugget");
-                   }
-                   if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == true &&
-                           boardState.hiddenRevealed[2] == false) {
-                       boardState.hiddenCards[0].getIdx().equals("nugget");
-                       boardState.hiddenCards[2].getIdx().equals("nugget");
-                   }
-                   if (boardState.hiddenRevealed[0] == true && boardState.hiddenRevealed[1] == false &&
-                           boardState.hiddenRevealed[2] == false) {
-                       boardState.hiddenCards[1].getIdx().equals("nugget");
-                       boardState.hiddenCards[2].getIdx().equals("nugget");
-                   }
-               }else{
-                   boardState.hiddenCards[boardState.nuggetpos].getIdx().equals("nugget");
-               }
                clone.processMove(legalMoves.get(i),false);
                int winner = clone.getWinner();
                //If this move causes the opponet to win return false
                if(winner==(1-playerturn)){
                    System.out.println(winner);
+                   oppwinningmove=legalMoves.get(i);
                    return false;
                }
            }
@@ -1016,6 +1031,7 @@ public class MyTools {
     }
 
     public static boolean isMalused(SBoardstateC board){
+        opponentMalused = board.getNbMalus(board.turnPlayer)>0;
        return(board.getNbMalus(board.turnPlayer)>0);
     }
 
@@ -1028,21 +1044,21 @@ public class MyTools {
         for (int i =0;i < possible_actions.size();i++){
             SaboteurCard card = possible_actions.get(i);
 
-            if(checkConnected(card)==true||card.getName().equals("Bonus")||card.getName().equals("Malus")){
+            if(!card.getName().equals("5_flip")||checkConnected(card)==true||card.getName().equals("Bonus")||card.getName().equals("Malus")){
                 buildingcards +=1;
-            }else if (card.getName().equals("Destroy")||card.getName().equals("Malus")||!checkConnected(card)){
+            }else if (card.getName().equals("5_flip")||card.getName().equals("Destroy")||card.getName().equals("Malus")||!checkConnected(card)){
                 sabotagingcards+=1;
             }
         }
         System.out.println("Sabotage Ratio: " + sabotagingcards +"/"+buildingcards);
-        return (sabotagingcards>buildingcards);
+        return (sabotagingcards>(buildingcards+1));
     }
     public static double saveCardsStrategy(SBoardstateC board){
         double result = 0;            // discourages the bot to play things that connects left and right
         // early on in the game
         int turn = board.getTurnNumber();
         if(sideWayConnect(board.lastplayed.getCardPlayed())){
-            result = 0.002*turn*turn-1;
+            result = 0.01*turn*turn-1;
             if(result <0){
                 System.out.println("Why negative");
             }
@@ -1056,7 +1072,12 @@ public class MyTools {
         if(c.getName().contains("Tile")){
             if(checkConnected(c)) {
                 SaboteurTile t = (SaboteurTile) c;
-                if(t.getPath()[0][1]==1 && t.getPath()[2][1]==1) return true;
+                boolean oldsideways=t.getPath()[0][1]==1 && t.getPath()[2][1]==1;
+                boolean sideways=t.getPath()[0][1]==1 && t.getPath()[1][1]==1 && t.getPath()[2][1]==1;
+                if(sideways!=oldsideways){
+                    sideways=oldsideways;
+                }
+                if(sideways) return true;
             }
         }
         return false;
@@ -1111,8 +1132,8 @@ public class MyTools {
 
         boolean sabotage = false;
         boolean failedtoplaymap=false;
-
-        if(activeSabotager(boardState)){
+        //Testing
+        if(activeSabotager(boardState)||globalsabotage==true){
             System.out.println("Sabotager!");
             sabotage= true;
             globalsabotage=true;
@@ -1168,7 +1189,7 @@ public class MyTools {
 
             if (sabotage == true) {
                 if (isSabotagingMove(played)) {
-                    moveVal += 100;
+                    moveVal += 20;
                     System.out.println("Sabotaging move");
                 }
             }
