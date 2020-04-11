@@ -339,7 +339,7 @@ public class MyTools {
                 euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
             int[] pos = board.lastplayedpos;
             if (pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint)){
-                if (board.getNbMalus(opponent)>0||!outlastStrategy(board)) {
+                if (!(board.getNbMalus(opponent)>0) && !outlastStrategy(board)) {
                     result -= 60;
                     playMalus=true;
                 }
