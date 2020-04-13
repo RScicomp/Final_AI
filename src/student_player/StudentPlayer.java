@@ -4,17 +4,14 @@ package student_player;
 import Saboteur.*;
 import boardgame.Move;
 import Saboteur.cardClasses.SaboteurCard;
-import java.util.HashMap;
+
 import java.util.Map;
 //import student_player.MyTools.Path;
 
 import Saboteur.SaboteurBoardState;
 import Saboteur.cardClasses.SaboteurTile;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 
 
 /** A player file submitted by a student. */

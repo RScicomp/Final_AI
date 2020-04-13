@@ -1,14 +1,13 @@
-package Saboteur;
+package student_player;
 
+import Saboteur.SaboteurBoardState;
+import Saboteur.SaboteurMove;
 import Saboteur.cardClasses.*;
-import student_player.MyTools;
 import boardgame.Board;
 import boardgame.BoardState;
 import boardgame.Move;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.UnaryOperator;
 
 /**
  * @author Pierre, adapted from mgrenander work on pentagoswap.
@@ -154,6 +153,7 @@ public class SBoardstateC extends BoardState {
         for(int i=0;i<pbs.hiddenCards.length;i++){
             this.hiddenCards[i] = new SaboteurTile(pbs.hiddenCards[i].getName().split(":")[1]); //Note: we might encounter a problem here, and should define card as cloneable
         }
+
 
         this.player1nbMalus = pbs.player1nbMalus;
         this.player2nbMalus = pbs.player2nbMalus;
@@ -976,9 +976,8 @@ public class SBoardstateC extends BoardState {
         System.arraycopy(pbshiddenRevealed,0,this.hiddenRevealed,0,pbshiddenRevealed.length);
 
         // Problem: we also need to make a copy of the private array where hiddenCards are stored.... So we make it protected!
-        this.hiddenCards = new SaboteurTile[pbs.hiddenCards.length];
-        for(int i=0;i<pbs.hiddenCards.length;i++){
-            this.hiddenCards[i] = new SaboteurTile(pbs.hiddenCards[i].getName().split(":")[1]); //Note: we might encounter a problem here, and should define card as cloneable
+        for(int i = 0; i < 3; i++){
+            this.hiddenCards[i] = this.board[hiddenPos[i][0]][hiddenPos[i][1]];
         }
 
         this.player1nbMalus = pbsplayer1nbMalus;
@@ -1242,49 +1241,49 @@ public class SBoardstateC extends BoardState {
         */
         this.getIntBoard(); //update the int board.
         boolean atLeastOnefound = false;
-        for(SaboteurTile target : objectives){
+        for(SaboteurTile target : objectives) {
             ArrayList<int[]> originTargets = new ArrayList<>();
-            originTargets.add(new int[]{originPos,originPos}); //the starting points
+            originTargets.add(new int[]{originPos, originPos}); //the starting points
             //get the target position
-            int[] targetPos = {0,0};
+            int[] targetPos = {0, 0};
             int currentTargetIdx = -1;
-            for(int i =0;i<3;i++){
-                if(this.hiddenCards[i].getIdx().equals(target.getIdx())){
+            for (int i = 0; i < 3; i++) {
+                if (this.hiddenCards[i].getIdx().equals(target.getIdx())) {
                     targetPos = SaboteurBoardState.hiddenPos[i];
                     currentTargetIdx = i;
                     break;
                 }
             }
-            if(!this.hiddenRevealed[currentTargetIdx]) {  //verify that the current target has not been already discovered. Even if there is a destruction event, the target keeps being revealed!
+            if (currentTargetIdx != -1) {
+                if (!this.hiddenRevealed[currentTargetIdx]) {  //verify that the current target has not been already discovered. Even if there is a destruction event, the target keeps being revealed!
 
-                if (cardPath(originTargets, targetPos, true)) { //checks that there is a cardPath
-                    //System.out.println("card path found"); //todo remove
-                    //this.printBoard();
-                    //next: checks that there is a path of ones.
-                    ArrayList<int[]> originTargets2 = new ArrayList<>();
-                    //the starting points
-                    originTargets2.add(new int[]{originPos*3+1, originPos*3+1});
-                    originTargets2.add(new int[]{originPos*3+1, originPos*3+2});
-                    originTargets2.add(new int[]{originPos*3+1, originPos*3});
-                    originTargets2.add(new int[]{originPos*3, originPos*3+1});
-                    originTargets2.add(new int[]{originPos*3+2, originPos*3+1});
-                    //get the target position in 0-1 coordinate
-                    int[] targetPos2 = {targetPos[0]*3+1, targetPos[1]*3+1};
-                    if (cardPath(originTargets2, targetPos2, false)) {
-                        System.out.println("0-1 path found");
-                        this.hiddenRevealed[currentTargetIdx] = true;
-                        this.player1hiddenRevealed[currentTargetIdx] = true;
-                        this.player2hiddenRevealed[currentTargetIdx] = true;
-                        atLeastOnefound =true;
+                    if (cardPath(originTargets, targetPos, true)) { //checks that there is a cardPath
+                        //System.out.println("card path found"); //todo remove
+                        //this.printBoard();
+                        //next: checks that there is a path of ones.
+                        ArrayList<int[]> originTargets2 = new ArrayList<>();
+                        //the starting points
+                        originTargets2.add(new int[]{originPos * 3 + 1, originPos * 3 + 1});
+                        originTargets2.add(new int[]{originPos * 3 + 1, originPos * 3 + 2});
+                        originTargets2.add(new int[]{originPos * 3 + 1, originPos * 3});
+                        originTargets2.add(new int[]{originPos * 3, originPos * 3 + 1});
+                        originTargets2.add(new int[]{originPos * 3 + 2, originPos * 3 + 1});
+                        //get the target position in 0-1 coordinate
+                        int[] targetPos2 = {targetPos[0] * 3 + 1, targetPos[1] * 3 + 1};
+                        if (cardPath(originTargets2, targetPos2, false)) {
+                            System.out.println("0-1 path found");
+                            this.hiddenRevealed[currentTargetIdx] = true;
+                            this.player1hiddenRevealed[currentTargetIdx] = true;
+                            this.player2hiddenRevealed[currentTargetIdx] = true;
+                            atLeastOnefound = true;
+                        } else {
+                            System.out.println("0-1 path was not found");
+                        }
                     }
-                    else{
-                        System.out.println("0-1 path was not found");
-                    }
+                } else {
+                    System.out.println("hidden already revealed");
+                    atLeastOnefound = true;
                 }
-            }
-            else{
-                System.out.println("hidden already revealed");
-                atLeastOnefound = true;
             }
         }
         return atLeastOnefound;
@@ -1300,11 +1299,13 @@ public class SBoardstateC extends BoardState {
                 break;
             }
         }
-        boolean playerWin = this.hiddenRevealed[nuggetIdx];
-        if (playerWin) { // Current player has won
-            winner = turnPlayer;
-        } else if (gameOver() && winner==Board.NOBODY) {
-            winner = Board.DRAW;
+        if(nuggetIdx != -1) {
+            boolean playerWin = this.hiddenRevealed[nuggetIdx];
+            if (playerWin) { // Current player has won
+                winner = turnPlayer;
+            } else if (gameOver() && winner == Board.NOBODY) {
+                winner = Board.DRAW;
+            }
         }
 
     }
