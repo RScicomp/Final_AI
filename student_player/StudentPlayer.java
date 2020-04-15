@@ -81,7 +81,7 @@ public class StudentPlayer extends SaboteurPlayer {
             System.out.println("Illegal move!");
             myMove = boardState.getRandomMove();
         }
-
+        MyTools.playMalus=false;
         oldboard = clone;
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;

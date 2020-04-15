@@ -34,6 +34,7 @@ public class MyTools {
     public static boolean opponentMalused=false;
     public static int connectedcardcount=0;
     public static int unconnectedcardindex=-1;
+    public static Map<String,Double> scores=new HashMap<String,Double>();
 
     //public static int nuggetpos=-1;
 
@@ -235,7 +236,7 @@ public class MyTools {
         if(board.lastplayed.getCardPlayed() instanceof SaboteurDrop){
             return dropStrategy(board);
         }
-        if(board.lastplayed.getCardPlayed().getName().equals("Map")) {
+        if(board.lastplayed.getCardPlayed() instanceof SaboteurMap) {
             return evalmapStrategy(board);
         }
 
@@ -290,23 +291,41 @@ public class MyTools {
         //result += stalemateStrategy(board);
 
         //result += outlastStrategy(board);
-
+        SaboteurMove played = board.lastplayed;
         result += checkConnectTwoHidden(board);
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += devalueUpcards(board);
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
 
         result += MyTools.valueConnected(board);
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += MyTools.countHiddenStrategy(board)*200;
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += saveCardsStrategy(board)*5;
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += safeGuardStrategy(board);
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += helpWinStrategy(board);
-
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         result += pathStrategy(board);
+
+        if(result <-1000){
+            System.out.println("Heey");
+        }
         //replaced with countHiddenStrategy()
         //Check if winning move or connects to hidden
 /*
@@ -380,23 +399,20 @@ public class MyTools {
 
         int[] pos = played.getPosPlayed();
         if(boardState.nuggetpos==-1) {
-            if (!(boardState.getNbMalus(boardState.getTurnPlayer()) > 0)) {
-                if (played.getCardPlayed().getName().equals("Map")) {
+            if (played.getCardPlayed() instanceof SaboteurMap) {
 
-                    boolean[] revealed;
-                    if (boardState.getTurnPlayer() == 1) {
-                        revealed = boardState.player2hiddenRevealed;
-                    } else {
-                        revealed = boardState.player1hiddenRevealed;
-                    }
-                    if (revealed[0] != true && pos[1] == 3 ||
-                            revealed[1] != true && pos[1] == 5 || revealed[2] != true && pos[1] == 7) {
-                        System.out.println("Never Played this card before");
-                        if (boardState.nuggetpos == -1) {
-                            return 500;
-                        }
-                        System.out.println("Not playing since we know where it is");
-                    }
+                boolean[] revealed;
+                if (boardState.getTurnPlayer() == 1) {
+                    revealed = boardState.player2hiddenRevealed;
+                } else {
+                    revealed = boardState.player1hiddenRevealed;
+                }
+                if (revealed[0] != true && pos[1] == 3 ||
+                        revealed[1] != true && pos[1] == 5 || revealed[2] != true && pos[1] == 7) {
+                    System.out.println("Never Played this card before");
+
+                    return 200;
+
                 }
             }
         }
@@ -422,6 +438,9 @@ public class MyTools {
                     int[] pos = board.lastplayedpos;
                     boolean path = pathToMeplaced(board.getHiddenIntBoard_old(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint);
                     if (path) {
+                        if(board.turnNumber < 5){
+                            System.out.println("HEY?!??!");
+                        }
                         playMalus = true;
                         result -= 1000;
 
@@ -431,13 +450,16 @@ public class MyTools {
         }else{
             if(     euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos])==2 ||
                     euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos])==Math.sqrt(2)){
+                if(board.turnNumber < 5){
+                    System.out.println("HEY?!??!");
+                }
                 playMalus=true;
                 if(board.getNbMalus(opponent)<1){
                     result-=1000;
                 }
             }
             // we cant connect to all three tiles
-            if(countHiddenStrategy(board)<3){
+            if(countHiddenStrategy(board)<3 &&countHiddenStrategy(board)>0 ){
                 System.out.println("111111");
                 // we cant connect to nugget
                 if(!pathToMeplaced(board.intBoard, originint, hiddenPosint[board.nuggetpos])){
@@ -1064,6 +1086,7 @@ public class MyTools {
 
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions2 )
     {
+        scores =  new HashMap<String,Double>();
         discconncount(boardState.getCurrentPlayerCards());
         hidden = boardState.hiddenRevealed;
         originalboard = boardState;
@@ -1099,6 +1122,20 @@ public class MyTools {
             sabotage= true;
             globalsabotage=true;
         }*/
+        //check for winning
+
+        if(boardState.nuggetpos!=-1) {
+            for (int i = 0; i < possible_actions.size(); i++) {
+                SaboteurMove played = possible_actions.get(i);
+                if(tileCard(played.getCardPlayed())) {
+                    SBoardstateC newboard = makeMove(played, boardState, false);
+                    //scores.put(played.toPrettyString(),);
+                    if (checkConnected(played.getCardPlayed())&&pathToMeplaced(newboard.intBoard, originint, hiddenPosint[boardState.nuggetpos])){
+                        return played;
+                    }
+                }
+            }
+        }
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
@@ -1115,6 +1152,9 @@ public class MyTools {
                 return played;
             }
             if(playMalus) {
+                if(boardState.turnNumber<5){
+                    System.out.println("HEY");
+                }
                 for (SaboteurCard c:boardState.getCurrentPlayerCards()){
                     if(c.getName().equals("Malus")) {
                         System.out.println("playin malus");
@@ -1136,6 +1176,7 @@ public class MyTools {
             // If the value of the current move is
             // more than the best value, then update
             // best
+            scores.put(played.toPrettyString(),moveVal);
 
             if (moveVal > bestVal) {
                 bestMove = played;
@@ -1149,9 +1190,16 @@ public class MyTools {
                 pboard = newboard;
             }
 
+
             //}
 
 
+        }
+        if(bestMove.getCardPlayed() instanceof SaboteurDrop){
+            System.out.println(scores);
+        }
+        if(bestMove.getCardPlayed().getName().equals("Malus")){
+            System.out.println(scores);
         }
         /*
         if(!opponentMalused && bestVal < 100) {
