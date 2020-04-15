@@ -310,7 +310,7 @@ public class SBoardstateC extends BoardState {
         return this.intBoard; }
 
     public void longestpath(SaboteurBoardState board){
-        int[][] intboard= board.getHiddenIntBoard_corrected();
+        int[][] intboard= board.getHiddenIntBoard();
         int maxpos[] = new int[]{16,16};
         double maxscore =0;
 

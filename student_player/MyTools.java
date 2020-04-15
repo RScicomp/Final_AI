@@ -232,7 +232,7 @@ public class MyTools {
         if(board.lastplayed.getCardPlayed().equals("Malus")){
             System.out.println("Hello");
         }
-        if(board.lastplayed.getCardPlayed().equals("Drop")){
+        if(board.lastplayed.getCardPlayed() instanceof SaboteurDrop){
             return dropStrategy(board);
         }
         if(board.lastplayed.getCardPlayed().getName().equals("Map")) {
@@ -295,13 +295,12 @@ public class MyTools {
 
         result += devalueUpcards(board);
 
-        result += MyTools.dropStrategy(board);
 
         result += MyTools.valueConnected(board);
 
         result += MyTools.countHiddenStrategy(board)*200;
 
-        result += saveCardsStrategy(board);
+        result += saveCardsStrategy(board)*5;
 
         result += safeGuardStrategy(board);
 
@@ -341,7 +340,7 @@ public class MyTools {
             System.out.println("WHAT");
         }
 
-        //Destroy tiles that disconnect
+        //Detroy tiles that disconnect
 
         return(result);
     }
@@ -403,46 +402,58 @@ public class MyTools {
         }
         return 0;
     }
-    public static double safeGuardStrategy(SBoardstateC board){
+    public static double safeGuardStrategy(SBoardstateC board) {
         double result = 0;
-        SaboteurMove move=board.lastplayed;
-        int opponent = board.getTurnPlayer() ;
+        SaboteurMove move = board.lastplayed;
+        int opponent = board.getTurnPlayer();
         SaboteurMove lastplayed = board.lastplayed;
-        //test
-        //if opponent is not malused
-        if(!(board.getNbMalus(opponent)>0)) {
-            if (euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
-                    euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
-                    euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
-                    euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
-                    euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
-                    euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
-                int[] pos = board.lastplayedpos;
-                boolean path = pathToMeplaced(board.getHiddenIntBoard_old(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint);
-                boolean patcorrected =  pathToMeplaced(board.getHiddenIntBoard(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint);
-                if(path!=patcorrected){
-                    System.out.println("ERRor");
-                }
-                if (path) {
-                    //IF your opponent can win it evaluates to !(false)==True
-                    boolean outlast = !outlastStrategy(board);
-                    //IF opponent is malused evaluates to !(true)=False
-                    boolean malused = !(board.getNbMalus(opponent) > 0);
-                    //IF your opponent can win based off this move and the opponent is not malused.
-                    //Malused and cannot win.
-                    if (malused && outlast) {
-                        result -= 1000;
+
+        //goal unknown
+        if(board.nuggetpos==-1){
+
+            //if opponent is not malused
+            if (!(board.getNbMalus(opponent) > 0)) {
+                if (euclideanDistance(board.lastplayedpos, hiddenPos[0]) == 2.0 ||
+                        euclideanDistance(board.lastplayedpos, hiddenPos[1]) == 2.0 ||
+                        euclideanDistance(board.lastplayedpos, hiddenPos[2]) == 2.0 ||
+                        euclideanDistance(board.lastplayedpos, hiddenPos[0]) == Math.sqrt(2) ||
+                        euclideanDistance(board.lastplayedpos, hiddenPos[1]) == Math.sqrt(2) ||
+                        euclideanDistance(board.lastplayedpos, hiddenPos[2]) == Math.sqrt(2)) {
+                    int[] pos = board.lastplayedpos;
+                    boolean path = pathToMeplaced(board.getHiddenIntBoard_old(), new int[]{pos[0] * 3 + 1, pos[1] * 3 + 1}, originint);
+                    if (path) {
                         playMalus = true;
+                        result -= 1000;
+
                     }
                 }
             }
-        }
-
-        if(board.getTurnPlayer()==1){
-            if(board.player1nbMalus>0) result=0; System.out.println("heyy");
-
         }else{
-            if(board.player2nbMalus>0) result=0; System.out.println("heyy");
+            if(     euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos])==2 ||
+                    euclideanDistance(board.lastplayedpos,hiddenPos[board.nuggetpos])==Math.sqrt(2)){
+                playMalus=true;
+                if(board.getNbMalus(opponent)<1){
+                    result-=1000;
+                }
+            }
+            // we cant connect to all three tiles
+            if(countHiddenStrategy(board)<3){
+                System.out.println("111111");
+                // we cant connect to nugget
+                if(!pathToMeplaced(board.intBoard, originint, hiddenPosint[board.nuggetpos])){
+                    System.out.println("222222");
+                    for(int i=0;i<3;i++){
+                        // wer not at nugget position, opponent isnt malused
+                        if(     i!=board.nuggetpos &&
+                                board.getNbMalus(opponent)<1){
+
+                            System.out.println("333333");
+
+                            result-=1000;
+                        }
+                    }
+                }
+            }
         }
         return result;
     }
@@ -483,7 +494,7 @@ public class MyTools {
         }else{
             hand = board.player1Cards;
         }
-        if(played.getCardPlayed().getName().equals("Drop")){
+        if(played.getCardPlayed() instanceof SaboteurDrop){
             SaboteurCard dropped = board.dropped;
             if (dropped instanceof SaboteurTile) {
                 if (!checkConnected((SaboteurTile) dropped)) {
@@ -525,10 +536,10 @@ public class MyTools {
             hand = board.player1Cards;
         }
         double result=0;
-
+/*
         if(!outlastStrategy(board)){
             return 0;
-        }
+        }*/
         if(board.getNbMalus(1-board.getTurnPlayer())>0){
             destroyed=board.destroyed;
             return euclideanDistance(origin,pos);
@@ -632,11 +643,16 @@ public class MyTools {
         SaboteurCard card=board.lastplayed.getCardPlayed();
         if(tileCard(card)){
             int[][] path= ((SaboteurTile)card).getPath();
-            if(path[1][1] ==1){
-                if(checkConnected(card)){
+            if(checkConnected(card)){
+                if(board.lastplayed.getPosPlayed()[0]>5) {
                     return 20;
                 }
+            }else{
+                if(opponentMalused && board.lastplayed.getPosPlayed()[0]>8 && connectedcardcount>2){
+                    return -10;
+                }
             }
+
         }
         return 0;
     }
@@ -674,8 +690,10 @@ public class MyTools {
     public static double pathStrategy(SBoardstateC board){
         double result = 0;
         if(pathToMeplaced(board.intBoard,originint,new int[]{board.lastplayedpos[0]*3+1,board.lastplayedpos[1]*3+1})) {
-            System.out.println("Path exists");
-            result = 10.0;
+            if (board.lastplayed.getPosPlayed()[0] > 5) {
+                System.out.println("Path exists");
+                result = board.lastplayed.getPosPlayed()[0]*.5;
+            }
         }
         return result;
     }
@@ -990,7 +1008,7 @@ public class MyTools {
             }
         }
         System.out.println("Sabotage Ratio: " + sabotagingcards +"/"+buildingcards);
-        return (sabotagingcards>(buildingcards+1));
+        return (sabotagingcards>(buildingcards+6));
     }
     public static void discconncount(ArrayList<SaboteurCard> possible_actions){
         for (int i =0;i < possible_actions.size();i++){
@@ -1010,8 +1028,8 @@ public class MyTools {
         double result = 0;            // discourages the bot to play things that connects left and right
         // early on in the game
         int turn = board.getTurnNumber();
-        if(sideWayConnect(board.lastplayed.getCardPlayed())){
-            result = 0.01*turn*turn-1;
+        if(sideWayConnect(board.lastplayed.getCardPlayed())&&!opponentMalused&&turn <= 20){
+            result = 0.002*turn*turn-1;
             if(result <0){
                 System.out.println("Why negative");
             }
@@ -1046,6 +1064,7 @@ public class MyTools {
 
     static SaboteurMove findBestMove(int maxdepth, SBoardstateC boardState,ArrayList<SaboteurMove> possible_actions2 )
     {
+        discconncount(boardState.getCurrentPlayerCards());
         hidden = boardState.hiddenRevealed;
         originalboard = boardState;
         boardState=updateRevealHistory(boardState);
@@ -1074,11 +1093,12 @@ public class MyTools {
         boolean sabotage = false;
         boolean failedtoplaymap=false;
         //Testing
+        /*
         if(activeSabotager(boardState)||globalsabotage==true){
             System.out.println("Sabotager!");
             sabotage= true;
             globalsabotage=true;
-        }
+        }*/
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
@@ -1098,7 +1118,7 @@ public class MyTools {
                 for (SaboteurCard c:boardState.getCurrentPlayerCards()){
                     if(c.getName().equals("Malus")) {
                         System.out.println("playin malus");
-                        return new SaboteurMove(c,0,0, boardState.turnPlayer);
+                         return new SaboteurMove(c,0,0, boardState.turnPlayer);
                     }
                 }
             }
