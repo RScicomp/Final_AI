@@ -44,7 +44,7 @@ public class StudentPlayer extends SaboteurPlayer {
         // MyTools.getSomething();
         int playerturn=1-boardState.getTurnPlayer();
         ArrayList<SaboteurCard> hand = boardState.getCurrentPlayerCards();
-        Map<String,Integer> compo = MyTools.updateDeck(SaboteurCard.getDeckcomposition(),boardState.getHiddenBoard());
+        Map<String,Integer> compo = MyTools.updateDeck(SaboteurCard.getDeckcomposition(),boardState.getHiddenBoard(),hand);
         ArrayList<SaboteurCard> deck = MyTools.getDeckfromcompo(compo);
 
 
@@ -66,13 +66,9 @@ public class StudentPlayer extends SaboteurPlayer {
             }
         }
 
-        //setStalemate(clone);
-        clone.stalemate = stalemate;
 
         clone.compo = compo;
         clone = MyTools.checkHiddenupdate(clone);
-        //clone= updateRevealHistory(clone);
-
 
         SaboteurMove myMove = MyTools.findBestMove(0, clone,boardState.getAllLegalMoves());
         System.out.println("Turn:"+boardState.getTurnPlayer());
@@ -90,34 +86,6 @@ public class StudentPlayer extends SaboteurPlayer {
         //SaboteurMove myMove = clone.getRandomMove();
         return myMove;
     }
-    /*
-    public static SBoardstateC updateRevealHistory(SBoardstateC board){
-        if(board.turnPlayer == 1) {
-            for (int i  =0; i < board.player1hiddenRevealed.length;i++){
-                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
-                    board.player1hiddenRevealed[i]=true;
-                    //board.hiddenRevealed[i]=true;
-                }
-                if(board.player1hiddenRevealed[i]==true){
-                    hiddenRevealedhist[i]=true;
-                    //board.hiddenRevealed[i]=true;
-                }
-            }
-        }
-        else{
-            for (int i  =0; i < board.player2hiddenRevealed.length;i++){
-                if(hiddenRevealedhist[i]==true && board.player1hiddenRevealed[i]==false){
-                    board.player2hiddenRevealed[i]=true;
-                    //board.hiddenRevealed[i]=true;
-                }
-                if(board.player1hiddenRevealed[i]==true){
-                    hiddenRevealedhist[i]=true;
-                    //board.hiddenRevealed[i]=true;
-                }
-            }
-        }
-        return board;
 
-    }*/
 
 }

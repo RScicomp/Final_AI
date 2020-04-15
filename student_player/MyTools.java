@@ -3,11 +3,14 @@ package student_player;
 import Saboteur.*;
 import Saboteur.cardClasses.*;
 //import student_player.MyTools.Path;
-
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.*;
 
 
 public class MyTools {
+    //public static final int DEFAULT_TIMEOUT = 1500;//20000
+    //private static final int DEFAULT_TIMEOUT_CUSHION = 1000;
     public static final int BOARD_SIZE = 14;
     public static final int EMPTY = -1;
     public static final int TUNNEL = 1;
@@ -31,6 +34,7 @@ public class MyTools {
     public static boolean opponentMalused=false;
     public static int connectedcardcount=0;
     public static int unconnectedcardindex=-1;
+
     //public static int nuggetpos=-1;
 
     //Ensure that if a hidden tile is revealed via a path, that it stays revealed.
@@ -189,7 +193,6 @@ public class MyTools {
         return existPath;
 
     }
-
 
 
 
@@ -776,7 +779,7 @@ public class MyTools {
 
         return boardState;
     }
-    public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles){
+    public static Map<String,Integer> updateDeck(Map<String,Integer> compoog, SaboteurTile[][] boardtiles,ArrayList<SaboteurCard> hand){
         Map<String,Integer> compo = cloneDeck(compoog);
 
         for (int i = 0; i < boardtiles.length;i++){
@@ -824,16 +827,43 @@ public class MyTools {
                 }
             }
         }
+        for (int i = 0; i < hand.size();i++){
+            String id = hand.get(i).getName();
+            id = id.split("_")[0];
+            //System.out.println("UPDATING: " + id);
+            if(compoog.get(id)!=null) {
+                compo.put(id, compoog.get(id) - 1);
+            }else{
+                break;
+            }
+        }
 
         //Return remaining possible moves. Feed to getalllegal.
         return compo;
     }
     public static boolean outlastStrategy(SBoardstateC boardState){
         //Sabotage and outlast the other player. Considering the remaining moves, ie. tiles
+        /*
+        if(boardState.lastplayed.getPosPlayed()[0]==11){
+            if(boardState.lastplayed.getPosPlayed()[1]==3){
+                String name =boardState.lastplayed.getCardPlayed().getName();
+                ifname.equals("0")||name.equals("5")||name.equals("5_flip")||name.equals("6")||name.equals("6_flip")||
+                        name.equals("7")||name.equals("7_flip")||name.equals("8")||name.equals("9")
+            }
+        }
+        if(boardState.lastplayed.getPosPlayed()[0]==12){
+            if(boardState.lastplayed.getPosPlayed()[1]==4){
 
-// check game saving, ie if i can destroy, destroy.
+            }
+
+        }
+        if(boardState.lastplayed.getPosPlayed()[0]==13){
+
+        }*/
+
+    // check game saving, ie if i can destroy, destroy.
         SaboteurMove lastplayed = boardState.lastplayed;
-        if(boardState.turnNumber >= 5 && !opponentMalused){
+        if(boardState.turnNumber >= 10 && !opponentMalused){
             if(boardState.nuggetpos==-1) {
                 if (boardState.hiddenRevealed[0] == false && boardState.hiddenRevealed[1] == false &&
                         boardState.hiddenRevealed[2] == false) {
@@ -939,119 +969,6 @@ public class MyTools {
         return (count*5);
     }
 
-    public static double minimax(int currentdepth, int maxdepth, SBoardstateC boardState, boolean maxer, double maxerscore){
-        //System.out.println("Current Depth: " + currentdepth);
-/*
-        if isMaximizingPlayer :
-        bestVal = -INFINITY
-        for each move in board :
-        value = minimax(board, depth+1, false)
-        bestVal = max( bestVal, value)
-        return bestVal
-
-*/      double score = evaluate2(boardState);
-        if((score+maxerscore)>= (boardState.turnNumber/3) + 4){
-            return(score+maxerscore);
-        }
-
-        if(currentdepth == maxdepth)
-            return score+maxerscore;
-
-
-//Ensure that if we look into the future we don ot help the other win
-        if(maxer == true) {
-            ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
-            System.out.println("MOVES:");
-            for (int i =0 ; i < possible_actions.size();i++){
-                System.out.println(possible_actions.get(i).toPrettyString());
-            }
-            if (possible_actions.size()== 0)
-                return 0;
-
-            double best = -1000;
-            SaboteurMove bestmove = possible_actions.get(0);
-            SBoardstateC board = new SBoardstateC(boardState);
-            for (int i = 0; i < possible_actions.size(); i++) {
-
-
-                SaboteurMove played = possible_actions.get(i);
-
-                if(!played.getCardPlayed().getName().equals("Drop")) {
-
-                    //Create a new copy board to run simulations on
-                    SBoardstateC newboard = makeMove(played,boardState,false);
-                    newboard.compo = updateDeck(SaboteurCard.getDeckcomposition(), newboard.board);
-
-
-                    double res = 0;
-                    res = minimax((currentdepth + 1), maxdepth, newboard, false, maxerscore + score);
-                    //System.out.println("Res:" + res);
-                    if (best < res) {
-                        bestmove = played;
-                        board = newboard;
-                    }
-                    best = Math.max(best, res);
-
-                }
-                //oldBState.processMove(possible_actions.get(i));
-                //System.out.println(oldBoardState.getBoardForDisplay());
-            }
-            if(playMalus==true){
-                if(!bestmove.getCardPlayed().getName().equals("Malus")){
-                    System.out.println("Can't play malus, a drop disconnect card instead");
-                    if(connectedcardcount>2){
-
-                    }
-                }
-            }
-
-            System.out.println("Best Move: " +bestmove.toPrettyString());
-            System.out.println("The resulting evaluation: " + best);
-            printBoard(board.board);
-            return best;
-        }
-        else{
-
-
-            double best = -1000;
-            //Get All legalmoves from player2
-            ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMovesDeck2();
-            System.out.println("MOVES:");
-            SaboteurMove bestmove = possible_actions.get(0);
-            SBoardstateC board = new SBoardstateC(boardState);
-
-            for (int i =0 ; i < possible_actions.size();i++){
-                System.out.println(possible_actions.get(i).toPrettyString());
-            }
-            for (int i = 0; i < possible_actions.size(); i++) {
-
-                //make the move
-                //update board
-                SaboteurMove played = possible_actions.get(i);
-                if(!played.getCardPlayed().getName().equals("Drop")) {
-                    SBoardstateC newboard = makeMove(played,boardState,false);
-
-                    double res = 0;
-                    res = minimax((currentdepth + 1), maxdepth, newboard, true, maxerscore);
-                    if(res>=100){
-                        System.out.println("YOU HELPED HIM WIN WTF");
-                        return(-1000);
-                    }
-                    if (best < res) {
-                        bestmove = played;
-                        board = newboard;
-                    }
-                    best = Math.max(best, res);
-                }
-
-            }
-            System.out.println("Best Move: " +bestmove.toPrettyString());
-            System.out.println("The resulting evaluation: " + evaluate2(board));
-            printBoard(board.board);
-            return best;
-        }
-
-    }
 
     public static boolean isMalused(SBoardstateC board){
         opponentMalused = board.getNbMalus(board.turnPlayer)>0;
@@ -1062,23 +979,32 @@ public class MyTools {
         ArrayList<SaboteurCard> possible_actions = board.getCurrentPlayerCards();
         double sabotagingcards = 0;
         double buildingcards = 0;
-        double prospectingcards = 0;
-        Map<String,Integer> deckcomp = board.compo;
         for (int i =0;i < possible_actions.size();i++){
             SaboteurCard card = possible_actions.get(i);
 
             if(!card.getName().equals("5_flip")||checkConnected(card)==true||card.getName().equals("Bonus")||card.getName().equals("Malus")){
                 buildingcards +=1;
-                if(card instanceof SaboteurTile){
-                    connectedcardcount+=1;
-                }
+
             }else if (card.getName().equals("5_flip")||card.getName().equals("Destroy")||card.getName().equals("Malus")||!checkConnected(card)){
                 sabotagingcards+=1;
-                unconnectedcardindex=i;
             }
         }
         System.out.println("Sabotage Ratio: " + sabotagingcards +"/"+buildingcards);
         return (sabotagingcards>(buildingcards+1));
+    }
+    public static void discconncount(ArrayList<SaboteurCard> possible_actions){
+        for (int i =0;i < possible_actions.size();i++){
+            SaboteurCard card = possible_actions.get(i);
+
+            if(checkConnected(card)==true){
+                connectedcardcount+=1;
+
+            }else{
+
+                unconnectedcardindex=i;
+
+            }
+        }
     }
     public static double saveCardsStrategy(SBoardstateC board){
         double result = 0;            // discourages the bot to play things that connects left and right
@@ -1136,21 +1062,9 @@ public class MyTools {
         }
         System.out.println("Turn number:  "+boardState.getTurnNumber() +" hidden tiles: "+ boardState.player1hiddenRevealed[0] + boardState.player1hiddenRevealed[1] + boardState.player1hiddenRevealed[1]);
 
-        ArrayList<SaboteurMove> possible_actions = boardState.getAllLegalMoves();
+        ArrayList<SaboteurMove> possible_actions = possible_actions2;
         legalmoves=possible_actions2;
 
-
-        if(possible_actions.size()==possible_actions2.size()){
-            System.out.println("In Business");
-        }else{
-            System.out.println("Uh oh");
-            System.out.println("MOVES FOR REAL:");
-            /*
-            for (int i =0 ; i < possible_actions2.size();i++){
-                System.out.println("Actual:" + possible_actions2.get(i).toPrettyString() + " OURS:" + possible_actions.get(i).toPrettyString());
-            }*/
-            possible_actions=possible_actions2;
-        }
 
 
         //Update the board with nugget position
@@ -1168,6 +1082,7 @@ public class MyTools {
 
         SBoardstateC pboard = new SBoardstateC(boardState);
         for (int i = 0; i < possible_actions.size(); i++) {
+
             double moveVal = 0;
             //Play bonus card every time malused
             SaboteurMove played = possible_actions.get(i);
@@ -1187,32 +1102,6 @@ public class MyTools {
                     }
                 }
             }
-
-            //boardState.processMove(move);
-            // play malus if next move is dangerous move
-            /*
-            else if(safeGuardStrategy(boardState)!=0){
-                for (SaboteurCard c:boardState.getCurrentPlayerCards()){
-                    if(c.getName().equals("Malus")) {
-                        System.out.println("playin malus");
-                        return new SaboteurMove(c,0,0, boardState.turnPlayer);
-                    }
-                }
-            }*/
-
-            //Get it to always play map card if unknown
-            /*
-            if (played.getCardPlayed().getName().equals("Map")) {
-                boolean[] revealed = boardState.returnRevealed();
-                if (revealed[0] != true && pos[1] == 3 ||
-                        revealed[1] != true && pos[1] == 5 || revealed[2] != true && pos[1] == 7) {
-                    System.out.println("Never Played this card before");
-                    if (boardState.nuggetpos == -1) {
-                        return (played);
-                    }
-                    System.out.println("Not playing since we know where it is");
-                }
-            }*/
 
             if (sabotage == true) {
                 if (isSabotagingMove(played)) {
@@ -1244,6 +1133,21 @@ public class MyTools {
 
 
         }
+        /*
+        if(!opponentMalused && bestVal < 100) {
+            if (playMalus == true) {
+                discconncount(boardState.getCurrentPlayerCards());
+                if (!bestMove.getCardPlayed().getName().equals("Malus")) {
+                    System.out.println("Can't play malus, a drop disconnect card instead");
+                    if (connectedcardcount == 2 && unconnectedcardindex != -1) {
+                        bestMove = new SaboteurMove(new SaboteurDrop(), unconnectedcardindex, 0, boardState.getTurnPlayer());
+                    }
+                }
+            }
+        }*/
+
+
+
         System.out.println("Playing simulation from first move: " +bestMove.toPrettyString());
         System.out.println("The resulting evaluation: " + evaluate2(pboard));
         printBoard(pboard.board);
@@ -1256,6 +1160,7 @@ public class MyTools {
 
     public static SBoardstateC makeMove(SaboteurMove played,SBoardstateC boardState,boolean draw){
         SBoardstateC newboard = new SBoardstateC(boardState);
+
         boolean play = true;
 
         newboard=checkHiddenupdate(newboard);
@@ -1263,7 +1168,14 @@ public class MyTools {
         if(newboard.lastplayedpos == null){
             System.out.println("ERROR");
         }
-        newboard.compo=updateDeck(SaboteurCard.getDeckcomposition(),newboard.board);
+        ArrayList<SaboteurCard> hand;
+        if(boardState.getTurnPlayer()==0) {
+            hand=boardState.player2Cards;
+        }
+        else{
+            hand=boardState.player1Cards;
+        }
+        //newboard.compo=updateDeck(SaboteurCard.getDeckcomposition(),newboard.board,hand);
         return newboard;
     }
     public static void printBoard(SaboteurTile[][] board){
